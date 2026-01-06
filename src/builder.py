@@ -10,8 +10,8 @@ def nan_to_none(x):
         return x.item()
     return x
 
-from domain import Team,Scores,TechnicalElement,ProgramComponents,Results
-from domain import Deduction,MetaInfo,VoteSignals,AdditionalInfo,CompetitionInfo
+from src.domain import Team,Scores,TechnicalElement,ProgramComponents,Results
+from src.domain import Deduction,MetaInfo,VoteSignals,AdditionalInfo,CompetitionInfo
 
 class TeamBuilder:
     def from_df(df:pd.DataFrame) -> Team:
@@ -117,7 +117,7 @@ class DeductionBuilder:
                 ))
         return ded_list
 
-from clean import ScoreDocument
+from src.clean import ScoreDocument
 class VoteBuilder: 
 
     @staticmethod
@@ -154,7 +154,7 @@ class VoteBuilder:
 class MetaInfoBuilder:
     def build(sourcefile,page,number_of_tables,table_idx,layout_strategy="global",vote=[],source_url=None):
         return MetaInfo(
-            sourcefile=sourcefile,
+            sourcefile=sourcefile.name,
             page=page,
             date_parsing= datetime.date.today().isoformat(),
             number_of_tables=number_of_tables,
@@ -168,7 +168,7 @@ class MetaInfoBuilder:
     def build_from_scoreDoc(scoredoc:ScoreDocument,page,table_idx,layout_strategy="global",addinfo:AdditionalInfo=None):
         vb=VoteBuilder()
         return MetaInfo(
-            sourcefile=scoredoc.filename,
+            sourcefile=scoredoc.filename.name,
             page=page,
             date_parsing=datetime.date.today().isoformat(),
             number_of_tables=scoredoc.page_mask.number_of_tables,

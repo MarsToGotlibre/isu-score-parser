@@ -152,7 +152,7 @@ class AdditionalInfo:
             source_url=data.get("source_url")
         )
 
-from clean import ScoreDocument
+from src.clean import ScoreDocument
 @dataclass 
 class CompetitionInfo:
     segment:str
