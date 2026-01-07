@@ -1,8 +1,8 @@
 import pandas as pd
-from config import TableConfig
+from src.config import TableConfig
 import logging
 import pdfplumber
-from pdf import PageMask,TableExtractor
+from src.pdf import PageMask,TableExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -244,11 +244,16 @@ class ScoreDocument:
             config_custom=self.config
         if table_idx>(self.page_mask.number_of_tables-1):
             raise IndexError(f"Index out of range: index from 0 to {self.page_mask.number_of_tables-1}, you entered {table_idx}")
-        
-        return TableData(self.extractor.extract(self.page_mask.tables[table_idx],page=page,config=config_custom))
+        tables=self.extractor.extract(self.page_mask.tables[table_idx],page=page,config=config_custom)
+        if tables:
+            return TableData(tables)
+        return
     
     def clean_tableData(self,config_custom=False,table_idx=0,page=1):
         table= self.tableData(table_idx,page)
+        if not table:
+            return
+        
         if not config_custom:
             try:
                 return table.clean(self.config)
