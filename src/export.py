@@ -11,7 +11,12 @@ class FilenameGenerator:
     date:str | None = None
     cat:str |None =None
 
-
+    @property
+    def directory(self):
+        parts = [ self.compet, self.date,self.segment,self.cat, self.div, self.discipline]
+        directory="_".join(p for p in parts if p) if any(parts) else ""
+        return directory
+    
     @property
     def filename(self):
         
@@ -126,9 +131,10 @@ class FilenameFactory:
                 return "FS"
         return segment.replace(" ","_")
     
-    def find_discipline_cat(self,data: dict) -> tuple[str | None, str]:
-        raw_cat = data["competition"]["category"]
-        team_name = data["results"]["team"]["name"]
+    def find_discipline_cat(self,data=None,raw_cat=None,team_name=None) -> tuple[str | None, str]:
+        if data:
+            raw_cat = data["competition"]["category"]
+            team_name = data["results"]["team"]["name"]
 
         words = self.normalize(raw_cat)
 
@@ -150,7 +156,7 @@ class FilenameFactory:
     def from_dict(self,jsondict:dict):
         gen=FilenameGenerator()
         gen.name=jsondict["results"]["team"]["name"].lower().replace(" ","_").replace("/","")
-        gen.cat,gen.discipline=(self.find_discipline_cat(jsondict))
+        gen.cat,gen.discipline=(self.find_discipline_cat(data=jsondict))
         gen.country=jsondict["results"]["team"]["country"]
         gen.div=jsondict["competition"].get("division")
 
@@ -159,4 +165,13 @@ class FilenameFactory:
             gen.date=date[:4]
         gen.compet=self.comp_name_red(jsondict["competition"].get("name"))
         gen.segment=self.find_segment(jsondict["competition"]["segment"])
+        return gen
+    
+    def from_conp_info(self,compinfo):
+        gen=FilenameGenerator()
+        gen.cat,gen.discipline=(self.find_discipline_cat(raw_cat=compinfo.category))
+        gen.div=compinfo.division
+        gen.date=compinfo.date.year if compinfo.date else None
+        gen.compet=self.comp_name_red(compinfo.name)
+        gen.segment=self.find_segment(compinfo.segment)
         return gen
