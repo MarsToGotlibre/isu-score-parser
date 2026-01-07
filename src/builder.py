@@ -79,10 +79,17 @@ class ComponentsBuilder:
     def from_df(df:pd.DataFrame) -> list[ProgramComponents]:
         components=[]
 
+        i=1
         for comp in df.itertuples():
+            
+            if pd.isna(comp.Program_Components):
+                Program_comp=f"Unamed Component {i}"
+                i+=1
+            else :
+                Program_comp=comp.Program_Components
             components.append(
                 ProgramComponents(
-                    name=comp.Program_Components,
+                    name=Program_comp,
                     factor=comp.Factor,
                     panel_score=comp.Scores_of_Panel,
                     J1=getattr(comp,"J1",None),
