@@ -2,7 +2,7 @@ from dataclasses import dataclass,field
 import pdfplumber
 import re
 import logging
-from config import TableConfig
+from src.config import TableConfig
 import camelot
 
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ class PageMask:
         INFOS=re.compile(r"[<x=e\*q!]{1,2}\s?(?:[-\w\s]+\s?)")
 
         #Deduction in 2005 where group into a table
-        DEDUCTIONS_05=re.compile(r"([A-Za-z\s&-]+:(?:\s+)?[0-9]{1,2}\.[0-9]{2})")
+        DEDUCTIONS_05=re.compile(r"([A-Za-z\s&-]+):(?:\s+)?([0-9]{1,2}\.[0-9]{2})")
         #Nation was mentioned as NOC
         NOC=re.compile(r"NOC")
         
@@ -137,15 +137,15 @@ class PageMask:
                         prgrm_info=next(it)
                         current_display=COMPETITION_INFO.match(prgrm_info["text"]).groups()
                         if current_display:
-                            logger.info(current_display)
                             ctx.fst_tbl_passed=True
                             division,category,program=current_display
+                            logger.info(f"Found : {division} as division, {category} as category, {program} as program")
                             y1=cls._invert_height(prgrm_info["bottom"],PAGE_HEIGHT)
                     else: # in older sheets, the info is on the same line as "Judge detail per skater"
                         legacy_display=LEGACY_INFO.match(line["text"]).groups()
-                        logger.info(legacy_display,' legacy display')
                         ctx.info_single_line=True
                         division,category,program=legacy_display
+                        logger.info(f"Found : {division} as division, {category} as category, {program} as program as legacy display")
                         y1=cls._invert_height(line["bottom"],PAGE_HEIGHT)
                     ctx.comp_found = True
                 continue
@@ -175,7 +175,8 @@ class PageMask:
 
                     try:
                         info_ded=next(it)
-                        if DEDUCTIONS_05.match(info_ded["text"]):
+                        ded_05=DEDUCTIONS_05.match(info_ded["text"])
+                        if ded_05 and ded_05.groups()[0]!="Printed":
                             y0=cls._invert_height(info_ded["bottom"],PAGE_HEIGHT)
                             ctx.ded_table=True
                             logger.info("2005 deduction tables")
