@@ -187,6 +187,23 @@ class TableData:
         self.tables["deduction"]=ded_df
         return self
 
+    def change_column_name(self,key,old_name_list,new_name_list):
+        changedict={}
+        for i,old_name in enumerate(old_name_list):
+            temp= self.tables[key].get(old_name)
+
+            if temp is not None:
+                changedict[old_name]=new_name_list[i]
+
+        if changedict:
+            self.tables[key].rename(columns=changedict,inplace=True)
+        return self
+    
+    def handle_different_col_name(self):
+        self.change_column_name("general_info",["Pl.","Start No","Deductions"],["Rank","Starting Number","Total Deductions"])
+
+        return self
+
     def clean(self,config:TableConfig):
         self.merge_rows(config)
         
@@ -210,6 +227,7 @@ class TableData:
         self.tables["technical_resume"] = self.separate_last_line("technical_score")
         self.tables["PCS_resume"] = self.total_pcs("PCS")
 
+        self.handle_different_col_name()
         self.change_column("PCS"," ","_")
         self.change_column("technical_score",".","")
         self.change_column("technical_score"," ","_")
