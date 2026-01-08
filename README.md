@@ -11,7 +11,7 @@ The extracted tables are stored into json files, and can be completed with addin
 - Deduction votes support
 - No call support
 
-> [!INFO]
+> [!NOTE]
 > This parser aims mostly to parse synchro skating PDFs. The maintenance will mostly be done for this discipline. Most other disciplines PDF can be parsed correctly but I can't garantee today it will work for every PDF if they are too far away from the expected structure.
 
 ## Installation
