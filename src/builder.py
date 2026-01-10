@@ -51,7 +51,8 @@ class TechnicalElementBuilder :
             elements.append(
                 TechnicalElement(
                     order=elem.Order,
-                    element=elem.Executed_Elements,
+                    element_raw=elem.Executed_Elements,
+                    element_parts=elem.Executed_Elements.split("+"),
                     base_value=elem.Base_Value,
                     goe=elem.GOE,
                     panel_score=elem.Scores_of_Panel,

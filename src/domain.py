@@ -40,7 +40,8 @@ class Scores:
 @dataclass
 class TechnicalElement:
     order:int
-    element:str
+    element_raw:str
+    element_parts:list[str]
     base_value:float
     goe:float
     panel_score:float
@@ -65,7 +66,8 @@ class TechnicalElement:
     def to_dict(self):
         return{
             "order":self.order,
-            "element":self.element,
+            "element_raw":self.element_raw,
+            "element_parts":self.element_parts,
             "base_value":self.base_value,
             "goe":self.goe,
             "panel_score":self.panel_score,
