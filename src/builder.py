@@ -4,7 +4,7 @@ import re
 import datetime
 
 def nan_to_none(x):
-    if pd.isna(x):
+    if not isinstance(x,list) and pd.isna(x):
         return None
     if isinstance(x,(np.integer,np.floating)):
         return x.item()

@@ -204,6 +204,26 @@ class TableData:
 
         return self
 
+    @staticmethod
+    def info_list(x):
+        L=[]
+        for elem in x.strip().split():
+            for info in elem.split(","):
+                if info!="":
+                    L.append(info)
+        return L
+    
+    def handle_info_columns(self):
+        df= self.tables["technical_score"]
+        info_idx=df.columns.get_loc("Info")
+        if not pd.isna(df.columns[info_idx+1]) :
+            new_info=df["Info"]
+        else:
+            new_info= df["Info"]+" "
+            new_info=new_info.add(df.iloc[:,info_idx+1],fill_value="")
+        df["Info"]=new_info.apply(lambda x:self.info_list(x) if pd.notna(x) else x)
+        return self
+
     def clean(self,config:TableConfig):
         self.merge_rows(config)
         

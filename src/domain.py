@@ -57,7 +57,7 @@ class TechnicalElement:
     J11:int | None = None
     J12:int | None = None
     
-    info:str | None = None
+    info:list[str] | None = None
     ref:str | None = None
     elm_ded:float | None = None
     bonus:bool | None=None
