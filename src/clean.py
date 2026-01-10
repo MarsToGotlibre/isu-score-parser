@@ -201,6 +201,7 @@ class TableData:
     
     def handle_different_col_name(self):
         self.change_column_name("general_info",["Pl.","Start No","Deductions"],["Rank","Starting Number","Total Deductions"])
+        self.change_column_name("technical_score",["Scores of Ref. Panel"],["Scores of Panel"])
 
         return self
 
