@@ -10,8 +10,8 @@ def nan_to_none(x):
         return x.item()
     return x
 
-from src.domain import Team,Scores,TechnicalElement,ProgramComponents,Results
-from src.domain import Deduction,MetaInfo,VoteSignals,AdditionalInfo,CompetitionInfo
+from src.pdf_parser.domain import Team,Scores,TechnicalElement,ProgramComponents,Results
+from src.pdf_parser.domain import Deduction,MetaInfo,VoteSignals,AdditionalInfo,CompetitionInfo
 
 class TeamBuilder:
     def from_df(df:pd.DataFrame) -> Team:
@@ -124,7 +124,7 @@ class DeductionBuilder:
                 ))
         return ded_list
 
-from src.clean import ScoreDocument
+from src.pdf_parser.clean import ScoreDocument
 class VoteBuilder: 
 
     @staticmethod

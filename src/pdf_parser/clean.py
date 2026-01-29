@@ -1,8 +1,8 @@
 import pandas as pd
-from src.config import TableConfig
+from src.pdf_parser.config import TableConfig
 import logging
 import pdfplumber
-from src.pdf import PageMask,TableExtractor
+from src.pdf_parser.pdf import PageMask,TableExtractor
 
 logger = logging.getLogger(__name__)
 

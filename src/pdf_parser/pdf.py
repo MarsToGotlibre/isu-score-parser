@@ -2,7 +2,7 @@ from dataclasses import dataclass,field
 import pdfplumber
 import re
 import logging
-from src.config import TableConfig
+from src.pdf_parser.config import TableConfig
 import camelot
 
 logger = logging.getLogger(__name__)
