@@ -2,7 +2,7 @@ from dataclasses import dataclass,field
 from collections import namedtuple
 import pandas as pd
 
-from event_scrapper.utils import get_correct_tables, return_iso_date
+from src.event_scrapper.utils import get_correct_tables, return_iso_date
 
 @dataclass
 class Segment_idx:
@@ -12,7 +12,9 @@ class Segment_idx:
     pdf:str | None = None
 
     def fill_entries(self,key,value):
-        match key:
+        clean_key = " ".join(key.split()).strip()
+
+        match clean_key:
             case 'Panel of Judges':
                 self.panel=value
                 return self
@@ -103,7 +105,7 @@ class MainPageTables:
             segment_it=group_cat.itertuples()
 
             resume=next(segment_it)
-            for value,key in resume[3:5]:
+            for key,value in resume[3:5]:
                 category_idx.fill_entries(key=key,value=value)
             
             for segment in segment_it:
