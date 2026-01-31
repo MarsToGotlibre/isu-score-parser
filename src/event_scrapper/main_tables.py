@@ -89,17 +89,17 @@ class MainPageTables:
         location_str =self.location.iloc[0,0]
         locationsplit=location_str.split("/")
 
-        location={}
+        city,country,raw_location=None,None,None
         if len(locationsplit)==2:
             
-            location["city"]=locationsplit[0].strip()
-            location["country"]=locationsplit[1].strip()
+            city=locationsplit[0].strip()
+            city=locationsplit[1].strip()
             
         else :
-            location["raw_location"]=location_str.strip()
+            raw_location=location_str.strip()
         
-        loc_tup=namedtuple("Loc_tup",["place","location_det"])
-        return loc_tup(place=place,location_det=location)
+        loc_tup=namedtuple("Loc_tup",["place","raw_location","city","country"])
+        return loc_tup(place=place,raw_location=raw_location,city=city,country=country)
     
     def category_index(self):
         assert isinstance(self.categories,pd.DataFrame)
@@ -136,7 +136,7 @@ class MainPageTables:
 
             for segment in group_cat.itertuples():
                 child={}
-                child["date"]=return_iso_date(segment.Date)
+                child["date"]=return_iso_date(segment.Date).isoformat()
                 child["time"]=segment.Time
                 schedule_index[category][segment.Segment[0]]=child
                 if not schedule_index[category].get(segment.Segment[1]):
