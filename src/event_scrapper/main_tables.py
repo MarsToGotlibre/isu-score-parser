@@ -93,7 +93,7 @@ class MainPageTables:
         if len(locationsplit)==2:
             
             city=locationsplit[0].strip()
-            city=locationsplit[1].strip()
+            country=locationsplit[1].strip()
             
         else :
             raw_location=location_str.strip()
