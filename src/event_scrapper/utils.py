@@ -2,6 +2,9 @@ from datetime import datetime as datetime
 import pandas as pd
 import requests
 import re
+import logging
+
+logger=logging.getLogger(__name__)
 
 def return_iso_date(str_date):
     date=""
@@ -44,20 +47,49 @@ def empty_cell_to_nan(x):
         else:
             return x
         
-def get_correct_tables(url,extract_links="body"):
+
+def safe_fetch_html(url: str) -> str:
+    resp = requests.get( url, timeout=10 )
+    resp.raise_for_status()
+
     try:
-        dlt = pd.read_html(url,extract_links=extract_links,flavor="lxml")
+        return resp.text
     except UnicodeDecodeError:
-        response=requests.get(url)
-        response.encoding="latin-1"
-        import io
-        dlt=pd.read_html(io.StringIO(response.text),extract_links=extract_links,flavor="lxml")
+        pass
 
-    L=[]
-    for i,table in enumerate(dlt):
-        if table.shape[1]>1 : #and not table.isna().all().any()
+    resp.encoding = resp.apparent_encoding
+    try:
+        return resp.text
+    except UnicodeDecodeError:
+        pass
 
-            L.append(dlt[i].map(empty_cell_to_nan).dropna(inplace=False,how='all',axis='index',ignore_index=True) )
+    resp.encoding = "latin-1"
+    return resp.text
+
+def extract_tables_from_html(html: str, extract_links="body") -> list[pd.DataFrame]:
+    import io
+
+    try:
+        dfs = pd.read_html( io.StringIO(html), extract_links=extract_links, flavor="lxml" )
+    except ValueError:
+        return []
+
+    cleaned = []
+    for df in dfs:
+        if df.shape[1] <= 1:
+            continue
+
+        df = df.map(empty_cell_to_nan).dropna(how="all", axis=0).reset_index(drop=True)
+        cleaned.append(df)
+
+    return cleaned
+
+        
+def get_correct_tables(url,extract_links="body"):
+    html=safe_fetch_html(url)
+    tables=extract_tables_from_html(html=html,extract_links=extract_links)
+
+    if not tables:
+        logger.warning(f"No tables found at :{url}")
     
-         
-    return L
+    return tables
