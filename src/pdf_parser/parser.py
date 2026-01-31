@@ -61,7 +61,7 @@ def parse_page(
 def write(results,directory):
     for result in results:
         if result:
-            filename=FilenameFactory().from_dict(result).filename
+            filename=FilenameFactory().from_dict(result).json_filename
             with open(Path(directory,filename),"w") as f :
                 json.dump(result,f,indent=4)
 
@@ -85,7 +85,7 @@ def create_dir(dir,compinfo:CompetitionInfo):
         dir_fact=FilenameFactory().from_conp_info(compinfo=compinfo)
         if CompetitionInfo.name:
 
-            dir_name=ensure_unique(Path(cwd,"Data",dir_fact.directory))
+            dir_name=ensure_unique(Path(cwd,"Data",dir_fact.pdf_results_directory))
         else:
             event=0
             with os.scandir(Path(cwd,"Data")) as it:
@@ -95,7 +95,7 @@ def create_dir(dir,compinfo:CompetitionInfo):
                         if number>event :
                             event= number 
 
-            dir_name=Path(cwd,"Data",f"EVENT_{(event+1):02d}_{dir_fact.directory}")
+            dir_name=Path(cwd,"Data",f"EVENT_{(event+1):02d}_{dir_fact.pdf_results_directory}")
         os.mkdir(dir_name)
     else:
         dir_name=dir
