@@ -2,9 +2,12 @@ import pandas as pd
 from dataclasses import dataclass,field
 from urllib.parse import urljoin
 import logging
+from bs4 import BeautifulSoup
+from datetime import datetime
+import re
 
-from src.event_scrapper.utils import get_correct_tables
-from src.event_scrapper.domains import Panel,Entries,SegmentPlace,Results,PcsParts,DetailResults,Segment,Category
+from src.event_scrapper.utils import get_correct_tables,safe_fetch_html,return_iso_date
+from src.event_scrapper.domains import Panel,Entries,SegmentPlace,Results,PcsParts,DetailResults,Segment,Category,Event
 from src.event_scrapper.main_tables import MainPageTables,Category_idx
 
 logger = logging.getLogger(__name__)
@@ -369,3 +372,58 @@ class CategoryBuilder:
             )
             logger.info(f"Category '{category.category}' added")
         return category_list
+
+@dataclass
+class EventBuidler:
+    url:str
+    html:str
+    soup:BeautifulSoup
+    maintables:MainPageTables
+
+    @classmethod
+    def from_url(cls,url):
+        html=safe_fetch_html(url)
+        return cls(
+            url=url,
+            html=html,
+            soup=BeautifulSoup(html,"html.parser"),
+            maintables=MainPageTables().from_url(html)
+        )
+
+
+    def found_timezone_date(self):
+        dic={}
+        date = re.compile(r"(\d{1,2}[./]\d{1,2}[./]\d{4}) - (\d{1,2}[./]\d{1,2}[./]\d{4})")
+        for td in self.soup.find_all("td"):
+            d= date.match(" ".join(td.text.split()).strip())
+            if d :
+                assert len(d.groups())==2
+                dic["start_date"] = return_iso_date(d.groups()[0])
+                dic["end_date"] = return_iso_date(d.groups()[1])
+                continue
+            if "Local Time" in td.text:
+                timezone=td.text.strip("()").split(",")
+                if len(timezone)>1:
+                    dic["timezone"] = timezone[1].strip()
+                return dic
+        return dic
+
+    def build(self):
+        event=Event(
+            event_url=self.url,
+            event_name=self.soup.title.text.strip()
+        )
+        placeinfo=self.found_timezone_date()
+        event.start_date = placeinfo.get("start_date")
+        event.end_date = placeinfo.get("end_date")
+        event.timezone = placeinfo.get("timezone")
+
+        location_info=self.maintables.return_location()
+        event.place=location_info.place
+        event.country=location_info.country
+        event.raw_location=location_info.raw_location
+        event.city=location_info.city
+
+        event.categories=CategoryBuilder.from_main_page_table(self.maintables,self.url).build()
+
+        return event

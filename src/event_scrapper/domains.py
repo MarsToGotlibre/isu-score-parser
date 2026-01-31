@@ -1,5 +1,6 @@
 from dataclasses import dataclass 
 import pandas as pd
+from datetime import date
 
 @dataclass
 class Panel:
@@ -150,4 +151,34 @@ class Category:
             "segment":[
                 segment.to_dict() for segment in self.segments
             ]
+        }
+
+@dataclass
+class Event:
+    event_url:str
+    event_name:str
+    categories:list[Category] | None = None
+    start_date:date  | None = None
+    end_date:date | None = None
+    timezone:str | None = None
+    place:str | None = None
+    
+    city:str | None = None
+    country:str | None = None
+    raw_location:str | None = None
+
+    def to_dict(self):
+        return {
+            "event_url":self.event_url,
+            "name":self.event_name,
+            "start_date":self.start_date.isoformat() if self.start_date else None,
+            "end_date":self.end_date.isoformat() if self.end_date else None,
+            **({"timezone":self.timezone} if self.timezone else {}),
+            "place":self.place,
+            "location":{
+                **({"raw_location":self.raw_location} if self.raw_location else {}),
+                **({"city":self.city} if self.city else {}),
+                **({"country":self.country} if self.country else {})
+            },
+            "categories":[ category.to_dict() for category in self.categories]
         }
