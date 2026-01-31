@@ -15,13 +15,13 @@ def return_iso_date(str_date):
             date=datetime.strptime(str_date.strip(),"%d/%m/%Y").date().isoformat()
         except ValueError:
             date=str_date.strip()
-                #logging.warning(f""Couldn't put date into iso format, falling back to extracted date.")
+            logger.warning(f"Couldn't put date into iso format, falling back to raw extracted date.")
     return date
 
 def found_timezone_date(soup,dic):
-    date = re.compile(r"(\d{2}\.\d{2}\.\d{4}) - (\d{2}\.\d{2}\.\d{4})")
+    date = re.compile(r"(\d{1,2}\.\d{1,2}\.\d{4}) - (\d{1,2}\.\d{1,2}\.\d{4})")
     for td in soup.find_all("td"):
-        d= date.match(td.text.strip())
+        d= date.match(" ".join(td.text.split()).strip())
         if d :
             assert len(d.groups())==2
             dic["start_date"] = return_iso_date(d.groups()[0])
