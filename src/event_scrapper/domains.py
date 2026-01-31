@@ -162,7 +162,10 @@ class Event:
     categories:list[Category] | None = None
     start_date:date  | None = None
     end_date:date | None = None
-    timezone:str | None = None
+    timezone_raw:str | None = None
+    timezone_offset:str | None = None
+    timezone_minutes:int | None = None
+    timezone_standard:str | None = None
     place:str | None = None
     
     city:str | None = None
@@ -181,7 +184,12 @@ class Event:
             "name":self.event_name,
             "start_date":self.start_date.isoformat() if self.start_date else None,
             "end_date":self.end_date.isoformat() if self.end_date else None,
-            **({"timezone":self.timezone} if self.timezone else {}),
+            **({"timezone":{
+                **({"raw":self.timezone_raw} if self.timezone_raw else {}),
+                **({"offset":self.timezone_offset} if self.timezone_offset else {}),
+                **({"minutes":self.timezone_minutes} if self.timezone_minutes else {}),
+                **({"standard":self.timezone_standard} if self.timezone_standard else {})
+            }} if self.timezone_raw or self.timezone_standard or self.timezone_minutes or self.timezone_offset else {}),
             "place":self.place,
             "location":{
                 **({"raw_location":self.raw_location} if self.raw_location else {}),

@@ -409,6 +409,20 @@ class EventBuidler:
                 return dic
         return dic
 
+    @staticmethod
+    def timezone_management(event):
+        if not event.timezone_raw:
+            return
+        
+        m=re.match(r"(UTC|GMT)\s*([+-]\d{2}:\d{2})",event.timezone_raw)
+        if m:
+            event.timezone_standard = m.group(1)
+            event.timezone_offset = m.group(2)
+
+            sign= -1 if event.timezone_offset.startswith("-") else 1
+            hours,minutes= map(int,m.group(2)[1:].split(":"))
+            event.timezone_minutes = sign*(hours*60 + minutes)
+    
     def build(self):
         event=Event(
             event_url=self.url,
@@ -417,7 +431,9 @@ class EventBuidler:
         placeinfo=self.found_timezone_date()
         event.start_date = placeinfo.get("start_date")
         event.end_date = placeinfo.get("end_date")
-        event.timezone = placeinfo.get("timezone")
+        event.timezone_raw = placeinfo.get("timezone")
+
+        self.timezone_management(event)
 
         location_info=self.maintables.return_location()
         event.place=location_info.place
