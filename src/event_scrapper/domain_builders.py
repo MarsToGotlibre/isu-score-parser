@@ -17,7 +17,7 @@ class PanelBuilder:
     @staticmethod
     def name_parts(name):
         import regex
-        m=regex.match(r"(Mr?s?)\.\s((?:[\p{Lu}][\p{Ll}]+\s?)+)\s([-\s\p{Lu}]+)",name)
+        m=regex.match(r"(Mr?s?)\.\s((?:[\p{Lu}][\p{Ll}]+\s?-?)+)\s([-\s\p{Lu}]+)",name)
         
         return m.groups() if m else (None,None,None)
     
@@ -315,7 +315,7 @@ class DetailResultsBuilder:
                     tes=getattr(result,"TES"),
                     pcs=getattr(result,"PCS"),
                     detail_pcs=PcsParts_list,
-                    ded= self.negative_value(getattr(result,"Ded",None) or getattr(result,"Deduction",None)),
+                    ded= self.negative_value(getattr(result,"Ded",None) if getattr(result,"Ded",None)!= None else getattr(result,"Deduction",None)),
                     starting_number=self.starting_number(result.StN)
                     
                 )
