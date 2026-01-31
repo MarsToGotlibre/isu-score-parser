@@ -7,6 +7,7 @@ from src.event_scrapper.utils import get_correct_tables
 from src.event_scrapper.domains import Panel,Entries,SegmentPlace,Results,PcsParts,DetailResults,Segment,Category
 from src.event_scrapper.main_tables import MainPageTables,Category_idx
 
+logger = logging.getLogger(__name__)
 
 class PanelBuilder:
     @staticmethod
@@ -54,6 +55,7 @@ class PanelBuilder:
                       function=panel.Function,
                       nation=panel.Nation)
             )
+        logger.info(f"Panel built")
         return panel_list
 
 class EntriesBuilder:
@@ -87,6 +89,7 @@ class EntriesBuilder:
                         name=entry.Name,
                         nation= entry.Nation)
             )
+        logger.info("Entries built")
         return entry_list
     
 
@@ -152,6 +155,7 @@ class ResultsParts:
         
         not_ranked_df= self._not_ranked(df)
         if not isinstance(not_ranked_df,pd.DataFrame):
+            logger.info("Result table classified")
             return self
         
         not_ranked_df=self._fill_place(not_ranked_df)
@@ -159,6 +163,7 @@ class ResultsParts:
         self.finalnotreached=self._fnr_df(not_ranked_df)
         
         self.withdrawn=self._withdrawn_df(not_ranked_df)
+        logger.info("Result table classified")
         return self
 
 
@@ -216,6 +221,8 @@ class ResultsBuilder:
         self.listBuilder(resultsparts.finalnotreached,"FINAL NOT REACHED")
         self.listBuilder(resultsparts.withdrawn,"WITHDRAW")
 
+        logger.info(f"Result page infos extracted and classified")
+
         return self.result_list
 
 
@@ -244,7 +251,7 @@ class DetailResultsBuilder:
                 numeric=pd.to_numeric(df[col])
                 df[col]=numeric
             except ValueError:
-                print("not numeric")
+                logger.debug(f"{col} is not numeric")
         return df
     
     @staticmethod
@@ -305,6 +312,7 @@ class DetailResultsBuilder:
                     
                 )
             )
+        logger.info(f"Detailed results built")
         return det_res_list
 
 
@@ -345,8 +353,6 @@ class CategoryBuilder:
 
     def build(self ):
         category_list=[]
-        print(self.category_idx)
-        print(self.schedule_idx)
         for category in self.category_idx:
             category_list.append(
                 Category(
@@ -357,4 +363,5 @@ class CategoryBuilder:
 
                 )
             )
+            logger.info(f"Category '{category.category}' added")
         return category_list

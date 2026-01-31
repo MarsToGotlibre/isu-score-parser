@@ -1,8 +1,11 @@
 from dataclasses import dataclass,field
 from collections import namedtuple
 import pandas as pd
+import logging
 
 from src.event_scrapper.utils import get_correct_tables, return_iso_date
+
+logger=logging.getLogger(__name__)
 
 @dataclass
 class Segment_idx:
@@ -61,13 +64,16 @@ class MainPageTables:
     def from_list(self,liste_table):
         for table in liste_table:
             if table.shape==(1,2) and (table.columns==[0,1]).all():
+                logger.info("Location table found")
                 self.location=table
                 continue
             if (table.columns[:2]==['Category', 'Segment']).all():
+                logger.info("Category table found")
                 self.categories=table
                 self.categories.Category=self.categories.Category.ffill()
                 continue
             if (table.columns==['Date', 'Time', 'Category', 'Segment']).all():
+                logger.info("Schedule table found")
                 self.schedule= table
                 self.schedule.Date=self.schedule.Date.ffill()
                 self.schedule.dropna(ignore_index=True,inplace=True)
