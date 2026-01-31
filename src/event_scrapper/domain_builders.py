@@ -9,6 +9,7 @@ import re
 from src.event_scrapper.utils import get_correct_tables,safe_fetch_html,return_iso_date
 from src.event_scrapper.domains import Panel,Entries,SegmentPlace,Results,PcsParts,DetailResults,Segment,Category,Event
 from src.event_scrapper.main_tables import MainPageTables,Category_idx
+from src.event_scrapper.eventscrapper_filename import EventscrapperFilenameFactory
 
 logger = logging.getLogger(__name__)
 
@@ -425,5 +426,6 @@ class EventBuidler:
         event.city=location_info.city
 
         event.categories=CategoryBuilder.from_main_page_table(self.maintables,self.url).build()
+        event.name_generator=EventscrapperFilenameFactory().from_event(event)
 
         return event

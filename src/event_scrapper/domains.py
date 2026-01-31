@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import pandas as pd
 from datetime import date
 
+from src.event_scrapper.eventscrapper_filename import FilenameGenerator
+
 @dataclass
 class Panel:
     first_name:str
@@ -166,6 +168,12 @@ class Event:
     city:str | None = None
     country:str | None = None
     raw_location:str | None = None
+
+    name_generator:FilenameGenerator | None = None
+
+    @property
+    def filename(self):
+        return self.name_generator.event_json
 
     def to_dict(self):
         return {
