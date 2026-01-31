@@ -52,6 +52,7 @@ def safe_fetch_html(url: str) -> str:
     resp = requests.get( url, timeout=10 )
     resp.raise_for_status()
 
+    logger.info(f"Fetched url : {url}")
     try:
         return resp.text
     except UnicodeDecodeError:
@@ -67,10 +68,10 @@ def safe_fetch_html(url: str) -> str:
     return resp.text
 
 def extract_tables_from_html(html: str, extract_links="body") -> list[pd.DataFrame]:
-    import io
+    from io import StringIO
 
     try:
-        dfs = pd.read_html( io.StringIO(html), extract_links=extract_links, flavor="lxml" )
+        dfs = pd.read_html( StringIO(html), extract_links=extract_links, flavor="lxml" )
     except ValueError:
         return []
 
@@ -85,11 +86,14 @@ def extract_tables_from_html(html: str, extract_links="body") -> list[pd.DataFra
     return cleaned
 
         
-def get_correct_tables(url,extract_links="body"):
-    html=safe_fetch_html(url)
+def get_correct_tables(source,extract_links="body"):
+    if source.strip().lower().startswith("http"):
+        html=safe_fetch_html(source)
+    else:
+        html = source
     tables=extract_tables_from_html(html=html,extract_links=extract_links)
 
     if not tables:
-        logger.warning(f"No tables found at :{url}")
+        logger.warning(f"No tables found")
     
     return tables

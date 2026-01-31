@@ -20,7 +20,7 @@ def init_finc(url):
     
     found_timezone_date(page.soup,event_dict)
 
-    maintables=MainPageTables().from_url(url)
+    maintables=MainPageTables().from_url(page.html)
     event_dict["place"],event_dict["location"]=maintables.return_location()
     
     event_dict["categories"]=[category.to_dict() for category in CategoryBuilder.from_main_page_table(maintables,url).build()]
