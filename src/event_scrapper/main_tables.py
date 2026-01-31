@@ -96,7 +96,7 @@ class MainPageTables:
             location["country"]=locationsplit[1].strip()
             
         else :
-            location["raw_location"]=location.strip()
+            location["raw_location"]=location_str.strip()
         
         loc_tup=namedtuple("Loc_tup",["place","location_det"])
         return loc_tup(place=place,location_det=location)
