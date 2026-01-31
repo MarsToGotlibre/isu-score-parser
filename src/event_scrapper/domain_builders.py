@@ -31,15 +31,17 @@ class PanelBuilder:
         dfs=get_correct_tables(url,extract_links=None)
         panel_df=[]
         for df in dfs :
-            if (df.columns == ["Function","Name","Nation"]).all():
+            if (df.columns[:2] == ["Function","Name"]).all():
                 
                 panel_df=df
+                panel_df.rename(columns={"Nat.":"Nation"},errors="ignore",inplace=True)
                 break
-            elif (df.iloc[0] == ["Function","Name","Nation"]).all():
+            elif (df.iloc[0,:2] == ["Function","Name"]).all():
                 
                 panel_df=df
                 panel_df.drop(0,inplace=True)
                 panel_df.reset_index(drop=True,inplace=True)
+                panel_df.rename(columns={"Nat.":"Nation"},errors="ignore",inplace=True)
                 break
         
         assert isinstance(panel_df,pd.DataFrame)
@@ -72,10 +74,12 @@ class EntriesBuilder:
             if (df.columns[:2] == ['No.', 'Name']).all():
                 entry_df=df
                 entry_df.columns=self.strip_col(entry_df.columns)
+                entry_df.rename(columns={"Nat":"Nation"},errors="ignore",inplace=True)
                 break
             if (df.iloc[0,:2] == ['No.', 'Name']).all():
                 entry_df=df
                 entry_df.columns=self.strip_col(entry_df.columns)
+                entry_df.rename(columns={"Nat":"Nation"},errors="ignore",inplace=True)
                 entry_df.drop(0,inplace=True)
                 entry_df.reset_index(drop=True,inplace=True)
                 break
@@ -307,7 +311,7 @@ class DetailResultsBuilder:
                     tes=getattr(result,"TES"),
                     pcs=getattr(result,"PCS"),
                     detail_pcs=PcsParts_list,
-                    ded= self.negative_value(getattr(result,"Ded")),
+                    ded= self.negative_value(getattr(result,"Ded",None) or getattr(result,"Deduction",None)),
                     starting_number=self.starting_number(result.StN)
                     
                 )
