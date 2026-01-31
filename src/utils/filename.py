@@ -32,4 +32,4 @@ class FilenameGenerator:
     
     @property
     def event_json(self):
-        return f"{self.begindate.isoformat()}_{"-".join(self.compet.lower().split()).strip()}"
+        return f"{self.begindate.isoformat()}_{"-".join(self.compet.lower().split()).strip()}.json"
