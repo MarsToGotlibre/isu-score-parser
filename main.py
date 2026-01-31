@@ -3,7 +3,6 @@ import logging
 from pathlib import Path 
 import os
 
-from src.parser import parser
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +60,8 @@ def directory_output(path:Path):
         return Path(cwd,"Data",path).absolute()
 
 def pipeline_init(args):
+    from src.pdf_parser.parser import parser
+
     verify_structure()
     pdf=Path(args.pdf)
     check_file_exists(pdf)

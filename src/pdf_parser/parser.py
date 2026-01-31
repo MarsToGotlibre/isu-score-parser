@@ -1,7 +1,7 @@
-from src.clean import ScoreDocument
-from src.domain import CompetitionInfo
-from src.builder import ScoreSheetBuilder,yamlHandle
-from src.export import FilenameFactory
+from src.pdf_parser.clean import ScoreDocument
+from src.pdf_parser.domain import CompetitionInfo
+from src.pdf_parser.builder import ScoreSheetBuilder,yamlHandle
+from src.pdf_parser.export import FilenameFactory
 from pathlib import Path
 
 import os

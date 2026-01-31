@@ -154,7 +154,7 @@ class AdditionalInfo:
             source_url=data.get("source_url")
         )
 
-from src.clean import ScoreDocument
+from src.pdf_parser.clean import ScoreDocument
 @dataclass 
 class CompetitionInfo:
     segment:str
