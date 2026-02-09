@@ -1,7 +1,6 @@
 from datetime import datetime as datetime
 import pandas as pd
 import requests
-import re
 import logging
 
 logger=logging.getLogger(__name__)
@@ -35,7 +34,7 @@ def empty_cell_to_nan(x):
         
 
 def safe_fetch_html(url: str) -> str:
-    resp = requests.get( url, timeout=10 )
+    resp = requests.get( url, timeout=10,headers={"User-Agent": "Chrome/92.0.4515.159 Safari/537.36"} )
     resp.raise_for_status()
 
     logger.info(f"Fetched url : {url}")
