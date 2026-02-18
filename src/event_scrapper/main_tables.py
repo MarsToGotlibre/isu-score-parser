@@ -21,10 +21,25 @@ class Segment_idx:
             case 'Panel of Judges':
                 self.panel=value
                 return self
+            case 'Officials':
+                self.panel=value
+                return self
             case 'Starting Order / Detailed Classification':
                 self.detail_class=value
                 return self
+            case 'Starting Order / Result Detail':
+                self.detail_class=value
+                return self
             case 'Judges Scores (pdf)':
+                self.pdf=value
+                return self
+            case 'Judges Scores pdf':
+                self.pdf=value
+                return self
+            case 'Judges Scores, pdf':
+                self.pdf=value
+                return self
+            case 'Judges Scores (pdf) Randomized':
                 self.pdf=value
                 return self
 
