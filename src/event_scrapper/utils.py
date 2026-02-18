@@ -2,6 +2,9 @@ from datetime import datetime as datetime
 import pandas as pd
 import requests
 import logging
+from requests import HTTPError
+from functools import wraps
+from typing import Callable
 
 logger=logging.getLogger(__name__)
 
@@ -82,3 +85,25 @@ def get_correct_tables(source,extract_links="body"):
         logger.warning(f"No tables found")
     
     return tables
+
+
+
+def optional_build(label: str):
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except HTTPError as e:
+                logger.warning(f"[{label}] 404 — skipping: {e.url}")
+                return None
+
+            except AssertionError as e:
+                logger.warning(f"[{label}] Unexpected page structure — skipping: {e}")
+                return None
+            except Exception as e:
+                logger.error(f"[{label}] Unexpected error — skipping: {e}", exc_info=True)
+                return None
+        return wrapper
+    return decorator

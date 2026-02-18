@@ -111,48 +111,48 @@ class DetailResults:
 
         }
 
-@dataclass # segment category
+@dataclass 
 class Segment:
     name:str
-    date:str
-    time:str
-    panel:list[Panel]
-    detailed_results:list[DetailResults]
     pdf_url:str
+    date:str | None = None
+    time:str | None = None
+    panel:list[Panel] | None = None
+    detailed_results:list[DetailResults] | None = None
 
     def to_dict(self):
         return {
             "segment":self.name,
-            "date":self.date,
-            "time":self.time,
-            "panel":[
+            **({"date":self.date} if self.time else {}),
+            **({"time":self.time} if self.time else {}),
+            **({"panel":[
                 panel.to_dict() for panel in self.panel
-            ],
-            "detailed_results":[
+            ]} if self. panel else {}),
+            **({"detailed_results":[
                 detailResults.to_dict() for detailResults in self.detailed_results
-            ],
+            ]} if self.detailed_results else {}),
             "pdf_url":self.pdf_url
         }
 
 @dataclass
 class Category:
     name:str
-    entries:list[Entries]
-    results:list[Results]
-    segments:list[Segment]
+    entries:list[Entries] | None = None
+    results:list[Results] | None = None
+    segments:list[Segment] | None = None
 
     def to_dict(self):
         return {
             "category":self.name,
-            "entries":[
+            **({"entries":[
                 entry.to_dict() for entry in self.entries
-            ],
-            "results":[
+            ]} if self.entries else {}),
+            **({"results":[
                 result.to_dict()  for result in self.results
-            ],
-            "segment":[
+            ]} if self.results else {} ),
+            **({"segment":[
                 segment.to_dict() for segment in self.segments
-            ]
+            ]} if self.segmements else {})
         }
 
 @dataclass
@@ -190,7 +190,7 @@ class Event:
                 **({"minutes":self.timezone_minutes} if self.timezone_minutes else {}),
                 **({"standard":self.timezone_standard} if self.timezone_standard else {})
             }} if self.timezone_raw or self.timezone_standard or self.timezone_minutes or self.timezone_offset else {}),
-            "place":self.place,
+            "arena":self.place,
             "location":{
                 **({"raw_location":self.raw_location} if self.raw_location else {}),
                 **({"city":self.city} if self.city else {}),

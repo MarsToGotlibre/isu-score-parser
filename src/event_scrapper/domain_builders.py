@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import re
 
-from src.event_scrapper.utils import get_correct_tables,safe_fetch_html,return_iso_date
+from src.event_scrapper.utils import get_correct_tables,safe_fetch_html,return_iso_date,optional_build
 from src.event_scrapper.domains import Panel,Entries,SegmentPlace,Results,PcsParts,DetailResults,Segment,Category,Event
 from src.event_scrapper.main_tables import MainPageTables,Category_idx
 from src.event_scrapper.eventscrapper_filename import EventscrapperFilenameFactory
@@ -30,7 +30,7 @@ class PanelBuilder:
                 return "Men"
         return
             
-    
+    @optional_build
     def from_url(self,url):
         dfs=get_correct_tables(url,extract_links=None)
         panel_df=[]
@@ -70,6 +70,7 @@ class EntriesBuilder:
     def strip_col(column):
         return column.str.strip(".").str.strip()
 
+    @optional_build
     def from_url(self,url):
         dfs=get_correct_tables(url,extract_links=None)
 
@@ -203,7 +204,7 @@ class ResultsBuilder:
             )
         return self
 
-
+    @optional_build
     def from_url(self,url):
         dfs=get_correct_tables(url,extract_links=None)
 
@@ -289,9 +290,11 @@ class DetailResultsBuilder:
                     self.legend=dict(zip(df.iloc[1:,0],df.iloc[1:,1]))
         return self
 
+    @optional_build
     def build(self):
 
         det_res_list=[]
+        assert isinstance(self.det_results_df,pd.DataFrame)
         
         detailed_pcs_columns=self.det_results_df.drop(["Pl","Name","Nation","Club","TSS","TES","PCS","Ded","StN","Qual"],axis="columns",errors="ignore").dropna(axis="columns").columns
         for result in self.det_results_df.itertuples():
@@ -345,12 +348,15 @@ class CategoryBuilder:
         segment_list=[]
         
         for segment in category.segments:
-            schedule_idx=self.schedule_idx[category.category].get(segment.segment) if self.schedule_idx[category.category].get(segment.segment) else self.schedule_idx[category.category].get(segment.detail_class)
+            schedule_idx = None
+            if self.schedule_idx and self.schedule_idx.get(category.category):
+                schedule_idx=self.schedule_idx[category.category].get(segment.segment) or self.schedule_idx[category.category].get(segment.detail_class)
+
             segment_list.append(
                 Segment(
                     name=segment.segment,
-                    date=schedule_idx["date"],
-                    time=schedule_idx["time"],
+                    date=schedule_idx["date"] if schedule_idx else None,
+                    time=schedule_idx["time"] if schedule_idx else None,
                     panel=PanelBuilder().from_url(self.complete_url(segment.panel)),
                     detailed_results=DetailResultsBuilder().from_url(self.complete_url(segment.detail_class)).build(),
                     pdf_url=self.complete_url(segment.pdf)
