@@ -152,7 +152,7 @@ class Category:
             ]} if self.results else {} ),
             **({"segment":[
                 segment.to_dict() for segment in self.segments
-            ]} if self.segmements else {})
+            ]} if self.segments else {})
         }
 
 @dataclass
@@ -171,6 +171,7 @@ class Event:
     city:str | None = None
     country:str | None = None
     raw_location:str | None = None
+    extraction_metadata:dict | None = None
 
     name_generator:FilenameGenerator | None = None
 
@@ -180,6 +181,7 @@ class Event:
 
     def to_dict(self):
         return {
+            **({"_extraction_metadata": self.extraction_metadata} if self.extraction_metadata else {}),
             "event_url":self.event_url,
             "name":self.event_name,
             "start_date":self.start_date.isoformat() if self.start_date else None,

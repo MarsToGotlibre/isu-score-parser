@@ -1,12 +1,12 @@
 import pandas as pd
 from dataclasses import dataclass,field
-from urllib.parse import urljoin
 import logging
 from bs4 import BeautifulSoup
 from datetime import datetime
 import re
 
 from src.event_scrapper.utils import get_correct_tables,safe_fetch_html,return_iso_date,optional_build
+from src.event_scrapper.wayback_utils import URLResolver
 from src.event_scrapper.domains import Panel,Entries,SegmentPlace,Results,PcsParts,DetailResults,Segment,Category,Event
 from src.event_scrapper.main_tables import MainPageTables,Category_idx
 from src.event_scrapper.eventscrapper_filename import EventscrapperFilenameFactory
@@ -30,7 +30,7 @@ class PanelBuilder:
                 return "Men"
         return
             
-    @optional_build
+    @optional_build("panel")
     def from_url(self,url):
         dfs=get_correct_tables(url,extract_links=None)
         panel_df=[]
@@ -70,7 +70,7 @@ class EntriesBuilder:
     def strip_col(column):
         return column.str.strip(".").str.strip()
 
-    @optional_build
+    @optional_build("entries")
     def from_url(self,url):
         dfs=get_correct_tables(url,extract_links=None)
 
@@ -204,7 +204,7 @@ class ResultsBuilder:
             )
         return self
 
-    @optional_build
+    @optional_build("results")
     def from_url(self,url):
         dfs=get_correct_tables(url,extract_links=None)
 
@@ -269,7 +269,10 @@ class DetailResultsBuilder:
 
     def from_url(self,url):
 
-        dfs=get_correct_tables(url,extract_links=None)
+        try:
+            dfs=get_correct_tables(url,extract_links=None)
+        except AssertionError as e:
+            return self
 
         for df in dfs:
             if len(df.columns)>3:
@@ -290,7 +293,7 @@ class DetailResultsBuilder:
                     self.legend=dict(zip(df.iloc[1:,0],df.iloc[1:,1]))
         return self
 
-    @optional_build
+    @optional_build("detailed results")
     def build(self):
 
         det_res_list=[]
@@ -331,18 +334,15 @@ class DetailResultsBuilder:
 class CategoryBuilder:
     category_idx:list[Category_idx]
     schedule_idx:dict
-    base_url:str
+    url_resolver:URLResolver
 
     @classmethod
-    def from_main_page_table(cls,mainpagetable:MainPageTables,base_url):
+    def from_main_page_table(cls,mainpagetable:MainPageTables,extended_url:URLResolver):
         return cls(
             category_idx=mainpagetable.category_index(),
             schedule_idx=mainpagetable.schedule_index(),
-            base_url=base_url
+            url_resolver=extended_url
         )
-    
-    def complete_url(self,url):
-        return urljoin(self.base_url,url)
     
     def segments_builder(self,category:Category_idx):
         segment_list=[]
@@ -357,9 +357,9 @@ class CategoryBuilder:
                     name=segment.segment,
                     date=schedule_idx["date"] if schedule_idx else None,
                     time=schedule_idx["time"] if schedule_idx else None,
-                    panel=PanelBuilder().from_url(self.complete_url(segment.panel)),
-                    detailed_results=DetailResultsBuilder().from_url(self.complete_url(segment.detail_class)).build(),
-                    pdf_url=self.complete_url(segment.pdf)
+                    panel=PanelBuilder().from_url(self.url_resolver.resolve(segment.panel)),
+                    detailed_results=DetailResultsBuilder().from_url(self.url_resolver.resolve(segment.detail_class)).build(),
+                    pdf_url=self.url_resolver.resolve(segment.pdf)
                 )
             )
         return segment_list
@@ -371,8 +371,8 @@ class CategoryBuilder:
             category_list.append(
                 Category(
                     name=category.category,
-                    entries=EntriesBuilder().from_url(self.complete_url(category.entries)),
-                    results=ResultsBuilder().from_url(url=self.complete_url(category.result)),
+                    entries=EntriesBuilder().from_url(self.url_resolver.resolve(category.entries)),
+                    results=ResultsBuilder().from_url(url=self.url_resolver.resolve(category.result)),
                     segments=self.segments_builder(category)
 
                 )
@@ -382,14 +382,15 @@ class CategoryBuilder:
 
 @dataclass
 class EventBuidler:
-    url:str
+    url:URLResolver
     html:str
     soup:BeautifulSoup
     maintables:MainPageTables
 
     @classmethod
-    def from_url(cls,url):
-        html=safe_fetch_html(url)
+    def from_url(cls,raw_url):
+        url=URLResolver(raw_url)
+        html=safe_fetch_html(raw_url)
         return cls(
             url=url,
             html=html,
@@ -431,7 +432,7 @@ class EventBuidler:
     
     def build(self):
         event=Event(
-            event_url=self.url,
+            event_url=self.url.base.original_url,
             event_name=self.soup.title.text.strip()
         )
         placeinfo=self.found_timezone_date()
@@ -447,7 +448,8 @@ class EventBuidler:
         event.raw_location=location_info.raw_location
         event.city=location_info.city
 
-        event.categories=CategoryBuilder.from_main_page_table(self.maintables,self.url).build()
+        event.categories=CategoryBuilder.from_main_page_table(self.maintables,extended_url=self.url).build()
         event.name_generator=EventscrapperFilenameFactory().from_event(event)
+        event.extraction_metadata=self.url.export_resolution_map()
 
         return event

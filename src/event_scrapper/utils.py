@@ -5,6 +5,7 @@ import logging
 from requests import HTTPError
 from functools import wraps
 from typing import Callable
+from src.event_scrapper.wayback_utils import closest_archive
 
 logger=logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ def empty_cell_to_nan(x):
         
 
 def safe_fetch_html(url: str) -> str:
+    
+    assert isinstance(url,str)
     resp = requests.get( url, timeout=10,headers={"User-Agent": "Chrome/92.0.4515.159 Safari/537.36"} )
     resp.raise_for_status()
 
