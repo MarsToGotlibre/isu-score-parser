@@ -3,7 +3,10 @@ from collections import namedtuple
 import pandas as pd
 import logging
 
-from src.event_scrapper.utils import get_correct_tables, return_iso_date
+from src.event_scrapper.utils import return_iso_date,safe_fetch_html,get_correct_tables
+from src.event_scrapper.layout_extractor import EventInfo
+from src.event_scrapper.layout_detector import HTMLLayout
+
 
 logger=logging.getLogger(__name__)
 
@@ -67,54 +70,36 @@ class Category_idx:
 
 @dataclass
 class MainPageTables:
-    location:pd.DataFrame | None = None
     categories:pd.DataFrame | None = None
     schedule:pd.DataFrame | None = None
+    event_info:EventInfo | None = None
 
     def from_url(self,url):
-        self.from_list(get_correct_tables(url))
-        return self
+        html = safe_fetch_html(url)
 
-    
-    def from_list(self,liste_table):
-        for table in liste_table:
-            if table.shape==(1,2) and (table.columns==[0,1]).all():
-                logger.info("Location table found")
-                self.location=table
-                continue
-            if (table.columns[:2]==['Category', 'Segment']).all():
-                logger.info("Category table found")
-                self.categories=table
-                self.categories.Category=self.categories.Category.ffill()
-                continue
-            if (table.columns==['Date', 'Time', 'Category', 'Segment']).all():
-                logger.info("Schedule table found")
-                self.schedule= table
-                self.schedule.Date=self.schedule.Date.ffill()
-                self.schedule.dropna(ignore_index=True,inplace=True)
-                continue
+        layout=HTMLLayout.from_html(html=html)
+        layout_type=layout.detect()
+
+        extractor = layout.get_extractor()
+
+        if not extractor:
+            logger.error("No extractor available for detected ayout")
+            return self
         
-        return self
-    
-    def return_location(self):
-        if not isinstance(self.location,pd.DataFrame):
-            return 
-        place=self.location.iloc[0,1].strip()
+        extracted_data=extractor.extract(html=html)
+        self.event_info = extracted_data.eventinfo
+        self.schedule = extracted_data.schedule_df
+        self.categories = extracted_data.categories_df
 
-        location_str =self.location.iloc[0,0]
-        locationsplit=location_str.split("/")
-
-        city,country,raw_location=None,None,None
-        if len(locationsplit)==2:
-            
-            city=locationsplit[0].strip()
-            country=locationsplit[1].strip()
-            
-        else :
-            raw_location=location_str.strip()
+        if isinstance(self.categories, pd.DataFrame):
+            self.categories.Category = self.categories.Category.ffill()
         
-        loc_tup=namedtuple("Loc_tup",["place","raw_location","city","country"])
-        return loc_tup(place=place,raw_location=raw_location,city=city,country=country)
+        if isinstance(self.schedule, pd.DataFrame):
+            self.schedule.Date = self.schedule.Date.ffill()
+            self.schedule.dropna(ignore_index=True, inplace=True)
+            
+        logger.info(f"MainPageTables extracted with layout: {layout_type}")
+        return self
     
     def category_index(self):
         assert isinstance(self.categories,pd.DataFrame)

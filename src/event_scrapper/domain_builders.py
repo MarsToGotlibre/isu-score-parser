@@ -383,70 +383,38 @@ class CategoryBuilder:
 @dataclass
 class EventBuidler:
     url:URLResolver
-    html:str
-    soup:BeautifulSoup
     maintables:MainPageTables
 
     @classmethod
     def from_url(cls,raw_url):
         url=URLResolver(raw_url)
-        html=safe_fetch_html(raw_url)
         return cls(
             url=url,
-            html=html,
-            soup=BeautifulSoup(html,"html.parser"),
-            maintables=MainPageTables().from_url(html)
+            maintables=MainPageTables().from_url(raw_url)
         )
 
-
-    def found_timezone_date(self):
-        dic={}
-        date = re.compile(r"(\d{1,2}[./]\d{1,2}[./]\d{4}) - (\d{1,2}[./]\d{1,2}[./]\d{4})")
-        for td in self.soup.find_all("td"):
-            d= date.match(" ".join(td.text.split()).strip())
-            if d :
-                assert len(d.groups())==2
-                dic["start_date"] = return_iso_date(d.groups()[0])
-                dic["end_date"] = return_iso_date(d.groups()[1])
-                continue
-            if "Local Time" in td.text:
-                timezone=td.text.strip("()").split(",")
-                if len(timezone)>1:
-                    dic["timezone"] = timezone[1].strip()
-                return dic
-        return dic
-
-    @staticmethod
-    def timezone_management(event):
-        if not event.timezone_raw:
-            return
-        
-        m=re.match(r"(UTC|GMT)\s*([+-]\d{2}:\d{2})",event.timezone_raw)
-        if m:
-            event.timezone_standard = m.group(1)
-            event.timezone_offset = m.group(2)
-
-            sign= -1 if event.timezone_offset.startswith("-") else 1
-            hours,minutes= map(int,m.group(2)[1:].split(":"))
-            event.timezone_minutes = sign*(hours*60 + minutes)
-    
-    def build(self):
+    def copy_in_event(self):
+        eventinfo=self.maintables.event_info
         event=Event(
             event_url=self.url.base.original_url,
-            event_name=self.soup.title.text.strip()
-        )
-        placeinfo=self.found_timezone_date()
-        event.start_date = placeinfo.get("start_date")
-        event.end_date = placeinfo.get("end_date")
-        event.timezone_raw = placeinfo.get("timezone")
-
-        self.timezone_management(event)
-
-        location_info=self.maintables.return_location()
-        event.place=location_info.place
-        event.country=location_info.country
-        event.raw_location=location_info.raw_location
-        event.city=location_info.city
+            event_name=eventinfo.name
+            )
+        
+       
+        event.start_date=eventinfo.begin_date
+        event.end_date=eventinfo.end_date
+        event.timezone_raw=eventinfo.timezone_raw
+        event.timezone_offset=eventinfo.timezone_offset
+        event.timezone_minutes=eventinfo.timezone_minutes
+        event.timezone_standard=eventinfo.timezone_standard
+        event.place=eventinfo.arena
+        event.city=eventinfo.city
+        event.country=eventinfo.country
+        event.raw_location=eventinfo.raw_location
+        return event
+    
+    def build(self):
+        event=self.copy_in_event()
 
         event.categories=CategoryBuilder.from_main_page_table(self.maintables,extended_url=self.url).build()
         event.name_generator=EventscrapperFilenameFactory().from_event(event)

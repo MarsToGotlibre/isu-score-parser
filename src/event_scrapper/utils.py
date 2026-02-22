@@ -68,7 +68,7 @@ def extract_tables_from_html(html: str, extract_links="body") -> list[pd.DataFra
 
     cleaned = []
     for df in dfs:
-        if df.shape[1] <= 1:
+        if df.empty or df.shape[1] <= 1:
             continue
 
         df = df.map(empty_cell_to_nan).dropna(how="all", axis=0).reset_index(drop=True)
