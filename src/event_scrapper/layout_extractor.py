@@ -81,11 +81,11 @@ class OldDisplayExtractor:
 
         for table in list_table:
         
-            if (table.columns[:2]==['Category', 'Segment']).all():
+            if (table.columns[:2].isin(['Category', 'Segment'])).all():
                 logger.info("Category table found")
                 result["categories"]=table
                 continue
-            if (table.columns==['Date', 'Time', 'Category', 'Segment']).all():
+            if (table.columns.isin(['Date', 'Time', 'Category', 'Segment'])).all():
                 logger.info("Schedule table found")
                 result["schedule"]=table
                 continue

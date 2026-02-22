@@ -32,7 +32,7 @@ class ExtendedUrl:
 
     def geturl(self):   return self.split.geturl()
     @property
-    def is_wayback(self) : return self.hostname=="archive.org"
+    def is_wayback(self) : return self.hostname=="web.archive.org" or self.hostname=="archive.org"
     
     @property
     def url(self): return self.original_url if not self.archived_url else self.archived_url
@@ -110,31 +110,28 @@ def wayback_urlsplit(url: str) -> ExtendedUrl:
 
 def list_archive(url):
     import pandas as pd
-    response= requests.get(f"http://web.archive.org/cdx/search/cdx?url={url}&output=json&filter=statuscode:200&limit=3")
+    response= requests.get(f"http://web.archive.org/cdx/search/cdx?url={url}&output=json&filter=statuscode:200&limit=4")
     if len(response.json())<2:
         return
     df=pd.DataFrame(response.json()[1:],columns=response.json()[0])
-    df.loc[:,"length"]=pd.to_numeric(df.loc[:,"length"])
+    df.length=pd.to_numeric(df.length)
     L=[]
     for link in df.sort_values(by="length",ascending=False).itertuples():
         L.append(f"https://web.archive.org/web/{link.timestamp}/{link.original}")
+    return L
 
 
 def closest_archive(url):
     available=requests.get(f"http://archive.org/wayback/available?url={url}")
     
     response=available.json()
-    closest=response["archived_snapshots"].get("closest")
+    closest=response['archived_snapshots'].get('closest')
     if not closest:
         return None
-    
-    if closest["status"]!=200:
+    if closest["status"]!="200":
         fallback=list_archive(url)
         if fallback:
             return fallback[0]
         return 
     else:
         return closest["url"]
-     
-
-    

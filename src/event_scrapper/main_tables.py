@@ -33,6 +33,9 @@ class Segment_idx:
             case 'Starting Order / Result Detail':
                 self.detail_class=value
                 return self
+            case "Starting Order / Result Details":
+                self.detail_class=value
+                return self
             case 'Judges Scores (pdf)':
                 self.pdf=value
                 return self

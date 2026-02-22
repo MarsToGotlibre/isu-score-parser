@@ -5,7 +5,7 @@ import logging
 from requests import HTTPError
 from functools import wraps
 from typing import Callable
-from src.event_scrapper.wayback_utils import closest_archive
+from src.event_scrapper.exceptions import NoValidLink
 
 logger=logging.getLogger(__name__)
 
@@ -39,7 +39,9 @@ def empty_cell_to_nan(x):
 
 def safe_fetch_html(url: str) -> str:
     
-    assert isinstance(url,str)
+    if not url or not isinstance(url,str):
+        raise NoValidLink
+
     resp = requests.get( url, timeout=10,headers={"User-Agent": "Chrome/92.0.4515.159 Safari/537.36"} )
     resp.raise_for_status()
 
@@ -78,6 +80,8 @@ def extract_tables_from_html(html: str, extract_links="body") -> list[pd.DataFra
 
         
 def get_correct_tables(source,extract_links="body"):
+    if not source:
+        raise NoValidLink
     if source.strip().lower().startswith("http"):
         html=safe_fetch_html(source)
     else:
@@ -99,8 +103,10 @@ def optional_build(label: str):
             try:
                 return func(*args, **kwargs)
             except HTTPError as e:
-                logger.warning(f"[{label}] 404 — skipping: {e.url}")
+                logger.warning(f"[{label}] 404 — skipping: {e}")
                 return None
+            except NoValidLink as e:
+                logger.warning(f"[{label}] - {e}")
 
             except AssertionError as e:
                 logger.warning(f"[{label}] Unexpected page structure — skipping: {e}")

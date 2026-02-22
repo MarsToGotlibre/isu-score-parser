@@ -59,7 +59,7 @@ class PanelBuilder:
                       last_name=last_name,
                       gender=self.gender(gen),
                       function=panel.Function,
-                      nation=panel.Nation)
+                      nation=panel.Nation if pd.notna(panel.Nation) else None)
             )
         logger.info(f"Panel built")
         return panel_list
@@ -267,6 +267,7 @@ class DetailResultsBuilder:
     def starting_number(string):
         return int(string[1:])
 
+    @optional_build("detail results")
     def from_url(self,url):
 
         try:
