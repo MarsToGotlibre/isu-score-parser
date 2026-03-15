@@ -42,7 +42,7 @@ def safe_fetch_html(url: str) -> str:
     if not url or not isinstance(url,str):
         raise NoValidLink
 
-    resp = requests.get( url, timeout=10,headers={"User-Agent": "Chrome/92.0.4515.159 Safari/537.36"} )
+    resp = requests.get( url, timeout=15,headers={"User-Agent": "Chrome/92.0.4515.159 Safari/537.36"} )
     resp.raise_for_status()
 
     logger.info(f"Fetched url : {url}")

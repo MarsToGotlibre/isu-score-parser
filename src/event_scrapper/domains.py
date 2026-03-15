@@ -184,7 +184,7 @@ class Event:
             "_extraction_metadata":{
                 "extraction_date":date.today().isoformat(),
                 "scrapper_version": "beta",
-                **({"wayback_resolution": self.extraction_metadata} if self.extraction_metadata else {})
+                **({"wayback_resolution": self.wayback_resolution} if self.wayback_resolution else {})
             },
             "event_url":self.event_url,
             "name":self.event_name,

@@ -271,7 +271,7 @@ class DetailResultsBuilder:
 
         try:
             dfs=get_correct_tables(url,extract_links=None)
-        except NoValidLink as e:
+        except Exception as e:
             logger.warning(e)
             self.fetched_valid_link=False
             return self

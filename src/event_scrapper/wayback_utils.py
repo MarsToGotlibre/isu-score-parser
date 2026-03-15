@@ -138,4 +138,7 @@ def closest_archive(url):
             return fallback[0]
         return 
     else:
-        return closest["url"]
+        wayback_url=closest["url"]
+        if wayback_url.startwith("http://"):
+            wayback_url=wayback_url.replace("http://","https://")
+        return wayback_url
