@@ -54,7 +54,13 @@ class OldDisplayExtractor:
         event_info = EventInfo()
         
         if h2_list:
-            event_info.name = h2_list[0].get_text(strip=True)
+            name = h2_list[0].get_text(strip=True)
+            m=re.search(r"\d{1,2}\.-\d{1,2}\.\d{1,2}\.(\d{4})$",name)
+            if m:
+                name=name[:m.start()].strip() + f" {m.group(1)}"
+            if name.upper()==name:
+                name=name.title()
+            event_info.name=name
         
         if len(h3_list) >= 3:
             event_info.city = h3_list[0].get_text(strip=True)
