@@ -1,15 +1,13 @@
 import pandas as pd
 from dataclasses import dataclass,field
 import logging
-from bs4 import BeautifulSoup
-from datetime import datetime
-import re
 
-from src.event_scrapper.utils import get_correct_tables,safe_fetch_html,return_iso_date,optional_build
+from src.event_scrapper.utils import get_correct_tables,optional_build
 from src.event_scrapper.wayback_utils import URLResolver
 from src.event_scrapper.domains import Panel,Entries,SegmentPlace,Results,PcsParts,DetailResults,Segment,Category,Event
 from src.event_scrapper.main_tables import MainPageTables,Category_idx
 from src.event_scrapper.eventscrapper_filename import EventscrapperFilenameFactory
+from src.event_scrapper.exceptions import NoValidLink
 
 logger = logging.getLogger(__name__)
 
@@ -239,6 +237,7 @@ class ResultsBuilder:
 class DetailResultsBuilder:
     legend:dict | None= None
     det_results_df:pd.DataFrame | None=None
+    fetched_valid_link:bool | None = None
 
     @staticmethod
     def clean_columns(columns):
@@ -272,9 +271,12 @@ class DetailResultsBuilder:
 
         try:
             dfs=get_correct_tables(url,extract_links=None)
-        except AssertionError as e:
+        except NoValidLink as e:
+            logger.warning(e)
+            self.fetched_valid_link=False
             return self
-
+        
+        self.fetched_valid_link=True
         for df in dfs:
             if len(df.columns)>3:
                 if (df.columns[:4].isin(['Pl.', 'Name', 'Club', 'Nation'])).any():
@@ -296,6 +298,9 @@ class DetailResultsBuilder:
 
     @optional_build("detailed results")
     def build(self):
+
+        if not self.fetched_valid_link:
+            return
 
         det_res_list=[]
         assert isinstance(self.det_results_df,pd.DataFrame)
@@ -419,6 +424,6 @@ class EventBuidler:
 
         event.categories=CategoryBuilder.from_main_page_table(self.maintables,extended_url=self.url).build()
         event.name_generator=EventscrapperFilenameFactory().from_event(event)
-        event.extraction_metadata=self.url.export_resolution_map()
+        event.wayback_resolution=self.url.export_resolution_map()
 
         return event

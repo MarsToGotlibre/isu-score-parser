@@ -171,7 +171,7 @@ class Event:
     city:str | None = None
     country:str | None = None
     raw_location:str | None = None
-    extraction_metadata:dict | None = None
+    wayback_resolution:dict | None = None
 
     name_generator:FilenameGenerator | None = None
 
@@ -181,7 +181,11 @@ class Event:
 
     def to_dict(self):
         return {
-            **({"_extraction_metadata": self.extraction_metadata} if self.extraction_metadata else {}),
+            "_extraction_metadata":{
+                "extraction_date":date.today().isoformat(),
+                "scrapper_version": "beta",
+                **({"wayback_resolution": self.extraction_metadata} if self.extraction_metadata else {})
+            },
             "event_url":self.event_url,
             "name":self.event_name,
             "start_date":self.start_date.isoformat() if self.start_date else None,
@@ -192,7 +196,7 @@ class Event:
                 **({"minutes":self.timezone_minutes} if self.timezone_minutes else {}),
                 **({"standard":self.timezone_standard} if self.timezone_standard else {})
             }} if self.timezone_raw or self.timezone_standard or self.timezone_minutes or self.timezone_offset else {}),
-            "arena":self.place,
+            **({"arena":self.place} if self.place else {}),
             "location":{
                 **({"raw_location":self.raw_location} if self.raw_location else {}),
                 **({"city":self.city} if self.city else {}),
