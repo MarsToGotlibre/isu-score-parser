@@ -35,11 +35,14 @@ class HTMLLayout:
             if not tag.name:
                 continue
             
+            #old event pages in classic html
             if tag.name == "div":
+                #web.archive search captures div
                 if tag.get("id") and re.match(r"wm-ipp",tag.get("id")):
                     continue
                 else:
                     main_divs.append(tag)
+            #classic ISU table display
             elif tag.name == "table":
                 if tag.get("class") and "MainTab" in tag.get("class"):
                     table_sur.append(tag)

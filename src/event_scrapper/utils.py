@@ -78,7 +78,9 @@ def extract_tables_from_html(html: str, extract_links="body") -> list[pd.DataFra
 
     return cleaned
 
-        
+
+# Extract and pre prosseses the content of the tables from the html. Takes either a url and fetches it,
+#  or the already fetched html.
 def get_correct_tables(source,extract_links="body"):
     if not source:
         raise NoValidLink
@@ -95,6 +97,7 @@ def get_correct_tables(source,extract_links="body"):
 
 
 
+#Optional Build in case link to forein page doesn't exist. used in "domains builders"
 def optional_build(label: str):
 
     def decorator(func: Callable) -> Callable:

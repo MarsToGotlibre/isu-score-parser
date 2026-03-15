@@ -10,6 +10,7 @@ from src.event_scrapper.layout_detector import HTMLLayout
 
 logger=logging.getLogger(__name__)
 
+#Stores relative links for the segments
 @dataclass
 class Segment_idx:
     segment:str
@@ -50,6 +51,7 @@ class Segment_idx:
                 return self
 
 
+#Stores the relatives links of for the categories
 @dataclass
 class Category_idx:
     category:str
@@ -142,7 +144,14 @@ class MainPageTables:
                 child["date"]=return_iso_date(segment.Date).isoformat()
                 child["time"]=segment.Time
                 schedule_index[category][segment.Segment[0]]=child
-                if not schedule_index[category].get(segment.Segment[1]):
+
+                # Sometimes  the segement has two or more entries beacause the participants are splits into two groups with different times in the schedule index
+                # In those case the relative  link to the segment is the same and will be used as a fallback option to get the time and date of the segment
+                # Because in the category index the segment columns also links to the same relative links
+                
+                if not schedule_index[category].get(segment.Segment[1]): #  Only the first occurence of  the group is kept
+
+
                     schedule_index[category][segment.Segment[1]]=child
         
         return schedule_index

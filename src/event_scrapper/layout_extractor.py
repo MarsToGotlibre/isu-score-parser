@@ -33,6 +33,7 @@ class ExtractedPageData:
     schedule_df:pd.DataFrame | None = None
     layout_type:str="unknown"
 
+# Old layout with divs and conventional html tags
 class OldDisplayExtractor:
     def __init__(self,main_div :BeautifulSoup):
         self.main_div=main_div
@@ -55,14 +56,16 @@ class OldDisplayExtractor:
         
         if h2_list:
             name = h2_list[0].get_text(strip=True)
-            m=re.search(r"\d{1,2}\.-\d{1,2}\.\d{1,2}\.(\d{4})$",name)
+            m=re.search(r"\d{1,2}\.-\d{1,2}\.\d{1,2}\.(\d{4})$",name) # Removing dates (mostly for finish championchips)
             if m:
                 name=name[:m.start()].strip() + f" {m.group(1)}"
-            if name.upper()==name:
+            if name.upper()==name: #removing Caps locks title
                 name=name.title()
             event_info.name=name
         
         if len(h3_list) >= 3:
+            # numbre of H3 titles supposed to be in the following order : 
+            # 1st city, 2nd Dates of the competition, 3rd arena.
             event_info.city = h3_list[0].get_text(strip=True)
             
             dates_text = h3_list[1].get_text(strip=True)
@@ -99,13 +102,14 @@ class OldDisplayExtractor:
         return result
 
 
+# Current event html organisation with tables in other tables
 class TableDisplayExtractor:
 
     def __init__(self,soup:BeautifulSoup):
         self.soup=soup
 
     def extract(self,html,) ->ExtractedPageData:
-        soup =self.soup
+        #soup =self.soup
         tables= self._extract_tables(html=html)
         event_info= self._extract_event_info(location_df=tables.get("location"))
 
@@ -121,6 +125,7 @@ class TableDisplayExtractor:
 
         result={}
         
+        # All the layout is composed of tables, the information are contains in thoses subtables 
         for table in list_table:
             if table.shape==(1,2) and (table.columns==[0,1]).all():
                 logger.info("Location table found")

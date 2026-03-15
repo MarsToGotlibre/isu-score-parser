@@ -89,6 +89,7 @@ class URLResolver:
         
         return resolution_map
 
+# this splits the url and regognises if it's a web archive link or not and if the case resolve what the archived url is.
 def wayback_urlsplit(url: str) -> ExtendedUrl:
     split = urlsplit(url)
 
@@ -121,6 +122,9 @@ def list_archive(url):
     return L
 
 
+#Firsts makes a request with a simple api
+# If  this archive is not available, it will make a second request with a different api 
+# to serach for other multiple urls if available and will chose the greatest one
 def closest_archive(url):
     available=requests.get(f"http://archive.org/wayback/available?url={url}")
     
