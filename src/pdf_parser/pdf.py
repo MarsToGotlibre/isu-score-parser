@@ -114,7 +114,7 @@ class PageMask:
         
         ctx=ContextParser()
         BALISES =[
-            {"pattern":re.compile(r"(\d+?)\s+?([\w\s\\]+)\s+([A-Z]{3})"),"balise":"bottom"},
+            {"pattern":re.compile(r"(\d+?)\s+?([\w\s\\]+)\s+([A-Za-z]{2,5})"),"balise":"bottom"},
             {"pattern":re.compile(r"(Program Components)"),"balise":"top"},
             {"pattern":re.compile(r"(Deductions)"),"balise":"top"}]
         i,n=0,len(BALISES)
@@ -219,7 +219,7 @@ class PageMask:
                 i=(i+1)%n
         assert ctx.comp_found==True
         logger.info(f"{number_of_tables} tables found on the page")
-        return cls(PAGE_HEIGHT,page.width,number_of_tables,tables,program.lower(),category.lower(),division,config=ctx.table_config(),signals=ctx.signals)
+        return cls(PAGE_HEIGHT,page.width,number_of_tables,tables,program.title(),category.title(),division,config=ctx.table_config(),signals=ctx.signals)
     
     def from_file(self,file,page):
         with pdfplumber.open(file) as pdf:
@@ -262,5 +262,7 @@ class TableExtractor:
         except:
             logger.warning(f"TableExtractor : Deduction table not found")   
        
-            
+        """  for keys,value in result.items():
+            print(keys)
+            print(value) """
         return result
