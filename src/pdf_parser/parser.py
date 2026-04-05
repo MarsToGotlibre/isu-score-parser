@@ -80,7 +80,7 @@ def ensure_unique(dir_path: Path) -> Path:
 
 def create_dir(dir,compinfo:CompetitionInfo):
     if not dir:
-        cwd=Path(__file__).parent.parent.resolve()
+        cwd=Path(__file__).parent.parent.parent.resolve()
         
         dir_fact=FilenameFactory().from_conp_info(compinfo=compinfo)
         if CompetitionInfo.name:
