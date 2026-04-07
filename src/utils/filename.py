@@ -13,6 +13,11 @@ class FilenameGenerator:
     cat:str |None =None
     place:str | None = None
     begindate:date | None =  None
+    segmentdate:date | None = None
+
+    @property
+    def date(self):
+        return self.segmentdate or self.begindate
 
     @property
     def pdf_results_directory(self):
@@ -32,4 +37,40 @@ class FilenameGenerator:
     
     @property
     def event_json(self):
-        return f"{self.begindate.isoformat()}_{"-".join(self.compet.lower().split()).strip()}.json"
+        return f"{self.begindate.isoformat()}_{self.clean_string(self.compet)}.json"
+    
+    @property 
+    def event_segment_pdf(self):
+        return f"{self.date.isoformat()}_{self.clean_string(self.compet)}_{self.clean_string(self.cat)}_{self.clean_string(self.segment)}.pdf"
+    
+    @property
+    def event_dir(self):
+        return f"{self.begindate.isoformat()}_{self.clean_string(self.compet)}"
+
+    def reset_segment(self):
+        self.segment=None
+        self.segmentdate = None
+    
+    def reset_category(self):
+        self.cat= None
+
+    @staticmethod
+    def convert_to_datetime(newdate):
+        if not isinstance(newdate,date):
+            return date.fromisoformat(newdate)
+        
+        return newdate
+
+    def add_begindate(self,newdate):
+        if not newdate:
+            return
+        self.begindate= self.convert_to_datetime(newdate)
+    
+    def add_segmentdate(self,newdate):
+        if not newdate:
+            return
+        self.segmentdate = self.convert_to_datetime(newdate)
+
+    @staticmethod
+    def clean_string(longstring):
+        return "-".join(longstring.lower().split()).strip()

@@ -15,11 +15,29 @@ def init_logging(level: str="INFO")-> logging.Logger:
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Score PDF to JSONS")
-    parser.add_argument('-p', '--pdf',type=str, help="PDF File path",required=True)
-    parser.add_argument("-y","--yaml",type=str,help="YAML file path",default=None)
-    parser.add_argument("-b","--begin",type=int,help="First page parsed",required=True)
-    parser.add_argument("-e","--end",type=int,help="Last page parsed")
-    parser.add_argument("-o","--output",type=str,help="Output directory")
+    subparser= parser.add_subparsers(dest="module", required=True)
+
+    pdf_parser=subparser.add_parser("pdf", help="Extract the pdf score for each teams into a JSON")
+    
+    pdf_parser.add_argument('-p', '--pdf',type=str, help="PDF File path",required=True)
+    pdf_parser.add_argument("-y","--yaml",type=str,help="YAML file path",default=None)
+    pdf_parser.add_argument("-b","--begin",type=int,help="First page parsed",required=True)
+    pdf_parser.add_argument("-e","--end",type=int,help="Last page parsed")
+    pdf_parser.add_argument("-o","--output",type=str,help="Output directory")
+
+    event_parser= subparser.add_parser("event", help="Extract the event data from event page")
+    event_subparser=event_parser.add_subparsers(dest="action",required=True)
+
+    event_scrape_parser= event_subparser.add_parser("scrape",help="Scrape the web page")
+    event_scrape_parser.add_argument("page_event")
+    event_scrape_parser.add_argument("-d","--download-pdf",action="store_true", help= "Dowload the scores PDF found during the scrapping")
+    event_scrape_parser.add_argument("-o","--output-dir",help="output directory", default=None)
+
+
+    event_dl_pdf = event_subparser.add_parser("dl", help= "Download the pdf scraped in the event JSON")
+    event_dl_pdf.add_argument("event_json")
+    event_dl_pdf.add_argument("-o","--output-dir",help="output directory", default=None)
+
 
     return parser
 
@@ -40,14 +58,14 @@ def verify_structure():
         logger.info("Data folder not found.")
         os.mkdir(Path(cwd,"Data"))
         logger.info(f"Data Folder Created at {Path(cwd,"Data")}")
-    if not Path(cwd,"PDF").exists():
+    """ if not Path(cwd,"PDF").exists():
         logger.info("PDF folder not found.")
         os.mkdir(Path(cwd,"PDF"))
         logger.info(f"PDF Folder Created at {Path(cwd,"YAML")}")
     if not Path(cwd,"YAML").exists():
         logger.info("YAML folder not found.")
         os.mkdir(Path(cwd,"YAML"))
-        logger.info(f"YAML Folder Created at {Path(cwd,"YAML")}")
+        logger.info(f"YAML Folder Created at {Path(cwd,"YAML")}") """
 
 def directory_output(path:Path):
     cwd = Path(__file__).parent.resolve()
@@ -59,7 +77,7 @@ def directory_output(path:Path):
         os.mkdir(Path(cwd,"Data",path).absolute())
         return Path(cwd,"Data",path).absolute()
 
-def pipeline_init(args):
+def pdf_pipeline_init(args):
     from src.pdf_parser.parser import parser
 
     verify_structure()
@@ -81,7 +99,38 @@ def pipeline_init(args):
     parser(filename=pdf.absolute(), beginpage=args.begin, endpage=end, yaml_file=yaml, dir=path)
 
 
-    
+def event_pipeline(args):
+
+    match args.action :
+        case "scrape":
+            output=directory_output(args.output_dir)
+            from src.event_scrapper.export import init_finc
+            init_finc(args.page_event,dl_pdf=args.download_pdf,output=output)
+        case "dl":
+            path=Path(args.event_json).resolve()
+            check_extention(path,".json")
+            check_file_exists(path)
+
+            with open(path) as f:
+                import json
+                d=json.load(f)
+            
+            output= directory_output(args.output_dir) or path.parent
+
+            from src.event_scrapper.export import download_pdf
+            download_pdf(d,output)
+
+
+
+
+def pipeline(args):
+    verify_structure()
+    match args.module:
+        case "pdf":
+            pdf_pipeline_init(args)
+        case "event":
+            event_pipeline(args)
+
 
         
 
@@ -91,4 +140,5 @@ if __name__ == "__main__":
     term_parser=build_parser()
     arg= term_parser.parse_args()
     print(arg)
-    pipeline_init(arg)
+    print(arg.module)
+    pipeline(arg)
