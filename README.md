@@ -1,7 +1,68 @@
 # isu-score-parser
 
+**isu-score-parser** is a versatile tool designed to extract and structure figure skating data, including results, metadata, and technical protocols. 
+
+While it is optimized for **Synchronized Skating**, it supports most artistic disciplines. The project is built into two independent modules, allowing you to use only what you need.
+
+> [!NOTE]
+> Maintenance is primarily focused on Synchronized Skating. While other disciplines are generally supported, full compatibility is not guaranteed if their PDF or page structures deviate significantly from the tested standards.
+
+
+To see examples of outputs you can check the test-outputs folder in the test branch.
+
+##  Event Data Scraper
+Extracts locations, results, and panel data from ISU event pages.
+
+### Features
+- **Retro-compatible**: Supports both [modern](https://www.isuresults.com/results/season1819/wcsys2019/index.htm) and [legacy](https://www.figureskatingresults.fi/results/1112/MLSM12/index.htm) competition page layouts.
+- **Wayback Machine Integration**: Automatically explores archived pages and their relative links using the archive.org API.
+- **Robust Parsing**: Handles various statuses (Ranked, Withdrawn, Did Not Reach Final).
+
+### Installation
+
+```sh
+pip install requests lxml pandas beautifulsoup4 regex
+```
+
+### Usage
+
+**1. Scrape an event page**
+
+Extract metadata and results. You can also trigger the PDF download immediately with the `-d` flag.
+```sh
+python3 main.py event scrape <url> [OPTIONS]
+```
+
+| Option | Description |
+|--|--|
+| `-d, --download-pdf` | Dowload the scores PDF found during the scrapping |
+|  `-o, --output-dir` | Output directory. Created if it doesn't exist. If not specified, a generic directory will be created. |
+
+**2. Download PDFs from a JSON output**
+
+If you already have a JSON result from a previous scrape, use this to fetch the PDF files.
+```sh
+python3 main.py event dl <FILE.json> [OPTIONS]
+```
+| Option | Description |
+|--|--|
+|  `-o, --output-dir` | Output directory name. If it doesnt exists it will be created. Defaults to the same directory as the JSON file.|
+
+**Examples**
+```sh
+python3 main.py event dl example.json -o Directory
+```
+
+```sh
+python3 main.py event scrape https://example.com -o Directory
+```
+
+
+## Extract PDFs scores
+
 A tool to extract score tables from synchro skating score PDFs using python.
-The extracted tables are stored into json files, and can be completed with adding a yaml file to the parser. This parser also support other artistic disciplines.
+The extracted tables of scores are stored into json files, and can be completed by adding a yaml file to the parser. 
+The parser also support other artistic disciplines.
 
 **Features**:
 
@@ -11,10 +72,8 @@ The extracted tables are stored into json files, and can be completed with addin
 - Deduction votes support
 - No call support
 
-> [!NOTE]
-> This parser aims mostly to parse synchro skating PDFs. The maintenance will mostly be done for this discipline. Most other disciplines PDF can be parsed correctly but I can't garantee today it will work for every PDF if they are too far away from the expected structure.
 
-## Installation
+### Installation
 
 Requires :
 
@@ -24,13 +83,13 @@ Requires :
   - pandas (2.3.3)
   - camelot-py (1.0.9)
   - pdfplumber (0.11.9)
-  - PyYaml (6.0.3)
+  - PyYaml (6.0.3) (*optional : download if you intend using YAML file to complete your output*)
 
 ```sh
 pip install pandas "camelot-py[base]" pdfplumber pyyaml
 ```
 
-## Usage
+### Usage
 
 Use the following options to parse your pdf:
 
@@ -48,7 +107,7 @@ Usage :
 python3 main.py [OPTIONS]
 ```
 
-### Add info to the jsons generated
+#### Add info to the jsons generated
 
 With the a YAML file following this patern:
 
@@ -68,5 +127,5 @@ None of the entries (except `shema_version`) or required when parsing. You can r
 
 ## Futur Objectvies
 
-- Scrape competition info from page events.
 - Possibility to parse multiple pdfs at a time.
+- Connect the 2 modules
