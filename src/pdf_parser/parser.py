@@ -78,24 +78,27 @@ def ensure_unique(dir_path: Path) -> Path:
         i += 1
 
 
-def create_dir(dir,compinfo:CompetitionInfo):
+def create_dir(dir,compinfo:CompetitionInfo,relative_dir):
     if not dir:
         cwd=Path(__file__).parent.parent.parent.resolve()
         
         dir_fact=FilenameFactory().from_conp_info(compinfo=compinfo)
-        if CompetitionInfo.name:
 
-            dir_name=ensure_unique(Path(cwd,"Data",dir_fact.pdf_results_directory))
+        if not relative_dir:
+            relative_dir=Path(cwd,"Data")
+        
+        if compinfo.name:
+            dir_name=ensure_unique(Path(relative_dir,dir_fact.pdf_results_directory))
         else:
             event=0
-            with os.scandir(Path(cwd,"Data")) as it:
+            with os.scandir(relative_dir) as it:
                 for entry in it:
                     if entry.is_dir() and entry.name.startswith("EVENT_"):
                         number=int(entry.name.split("_")[1]) if entry.name.split("_")[1].isdigit() else event
                         if number>event :
                             event= number 
 
-            dir_name=Path(cwd,"Data",f"EVENT_{(event+1):02d}_{dir_fact.pdf_results_directory}")
+            dir_name=Path(relative_dir,f"EVENT_{(event+1):02d}_{dir_fact.pdf_results_directory}")
         os.mkdir(dir_name)
     else:
         dir_name=dir
@@ -106,14 +109,22 @@ def create_dir(dir,compinfo:CompetitionInfo):
 
             
     
-def parser(filename,beginpage:int,endpage:int, dir,yaml_file=None,):
-    addinfo=None
+def parser(filename,dir,beginpage:int=1,endpage:int|None=None, yaml_file=None,addinfo=None,relative_dir=None):
+
     if yaml_file:
         addinfo=yamlHandle.from_file(yaml_file)
     
+    print("addinfo",addinfo)
+    
     scoredoc=ScoreDocument.fromFile(filename=filename,page=beginpage)
-    compinfo=CompetitionInfo.from_scoredoc(scoredoc).merge_config(addinfo)
-    dir=create_dir(dir,compinfo=compinfo)
+    compinfo=CompetitionInfo.from_scoredoc(scoredoc)
+    compinfo.merge_config(addinfo)
+
+    if not endpage:
+        beginpage=1
+        endpage=scoredoc.nbr_pages
+
+    dir=create_dir(dir,compinfo=compinfo,relative_dir=relative_dir)
     for page in range(beginpage,endpage+1):
         try:
             results=parse_page(scoredoc, page, compinfo, addinfo)

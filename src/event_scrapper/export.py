@@ -7,6 +7,8 @@ logger=logging.getLogger(__name__)
 def download_pdf(event_dict:dict,output_dir):
     import requests,datetime
 
+    history={}
+
     categories=event_dict.get("categories")
     if not categories:
         return
@@ -37,10 +39,12 @@ def download_pdf(event_dict:dict,output_dir):
                         if chunk: 
                             f.write(chunk)
                     logger.info(f"PDF downloaded at {Path(output_dir,filename)}")
+                history[filename]=pdf_url
             
             generator.reset_segment()
         
         generator.reset_category()
+    return history
 
 
 def create_output_directory(event_dict):
@@ -70,10 +74,11 @@ def init_finc(url,dl_pdf:bool=False,output=None):
     output_file=event.filename
     with open(Path(output,output_file),"w",encoding="utf8") as f:
         json.dump(event_dict,f,indent=4,ensure_ascii=False)
-    logger.info(f"JSON generated under name : {output}")
+    logger.info(f"JSON generated under name : {output_file}")
 
+    history={}
     if dl_pdf:
-        download_pdf(event_dict,output)
+        history=download_pdf(event_dict,output)
         
-    return event.to_dict()
+    return (output,history)
 

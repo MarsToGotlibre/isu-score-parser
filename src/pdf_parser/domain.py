@@ -202,6 +202,7 @@ class CompetitionInfo:
             self.season=addInfo.season
         if addInfo.date:
             self.date=addInfo.date
+        return self
 
 @dataclass
 class VoteSignals:

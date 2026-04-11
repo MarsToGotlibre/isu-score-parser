@@ -261,22 +261,24 @@ class TableData:
     
 
 class ScoreDocument:
-    def __init__(self,filename,page_mask:PageMask,extractor:TableExtractor,config:TableConfig):
+    def __init__(self,filename,page_mask:PageMask,extractor:TableExtractor,config:TableConfig,nbr_pages):
         self.filename=filename
         self.page_mask=page_mask
         self.extractor=extractor
         self.config=config
+        self.nbr_pages=nbr_pages
     
     @classmethod
     def fromFile(cls,filename,page=1,auto_config=True):
         with pdfplumber.open(filename) as pdf:
-            page = pdf.pages[page-1]
-            page_mask=PageMask.from_pdf(page)
+            page_pdf = pdf.pages[page-1]
+            nbr_pages=len(pdf.pages)
+            page_mask=PageMask.from_pdf(page_pdf)
         if auto_config==True:
             config=page_mask.config
         else:
             config=auto_config
-        return cls(filename,page_mask,TableExtractor(filename,page_mask.width),config)
+        return cls(filename,page_mask,TableExtractor(filename,page_mask.width),config,nbr_pages)
     
     def tableData(self,table_idx=0,page=1,config_custom=False):
         if not config_custom:
