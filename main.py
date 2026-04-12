@@ -17,13 +17,19 @@ def build_parser():
     parser = argparse.ArgumentParser(description="Score PDF to JSONS")
     subparser= parser.add_subparsers(dest="module", required=True)
 
-    pdf_parser=subparser.add_parser("pdf", help="Extract the pdf score for each teams into a JSON")
+    pdf_parser=subparser.add_parser("pdf", help="Extract the PDF score for each teams into a JSON")
+    pdf_subparser=pdf_parser.add_subparsers(dest="action",required=True)
+
+    pdf_manual=pdf_subparser.add_parser("manual",help="Manual PDF extraction")
     
-    pdf_parser.add_argument('-p', '--pdf',type=str, help="PDF File path",required=True)
-    pdf_parser.add_argument("-y","--yaml",type=str,help="YAML file path",default=None)
-    pdf_parser.add_argument("-b","--begin",type=int,help="First page parsed",required=True)
-    pdf_parser.add_argument("-e","--end",type=int,help="Last page parsed")
-    pdf_parser.add_argument("-o","--output",type=str,help="Output directory")
+    pdf_manual.add_argument('-p', '--pdf',type=str, help="PDF File path",required=True)
+    pdf_manual.add_argument("-y","--yaml",type=str,help="YAML file path",default=None)
+    pdf_manual.add_argument("-b","--begin",type=int,help="First page parsed",required=True)
+    pdf_manual.add_argument("-e","--end",type=int,help="Last page parsed")
+    pdf_manual.add_argument("-o","--output",type=str,help="Output directory")
+
+    pdf_auto=pdf_subparser.add_parser("auto",help="Auto detects the PDFs in a folder in and extract them")
+    pdf_auto.add_argument("event_folder")
 
     event_parser= subparser.add_parser("event", help="Extract the event data from event page")
     event_subparser=event_parser.add_subparsers(dest="action",required=True)
@@ -38,6 +44,8 @@ def build_parser():
     event_dl_pdf.add_argument("event_json")
     event_dl_pdf.add_argument("-o","--output-dir",help="output directory", default=None)
 
+    event_fullpipeline =event_subparser.add_parser("fullpipeline", help="Generates event json, downloads pdf, extract the scores from pdfs.")
+    event_fullpipeline.add_argument("page_event_url")
 
     return parser
 
@@ -77,7 +85,7 @@ def directory_output(path:Path):
         os.mkdir(Path(cwd,"Data",path).absolute())
         return Path(cwd,"Data",path).absolute()
 
-def pdf_pipeline_init(args):
+def pdf_manual_pipeline_init(args):
     from src.pdf_parser.parser import parser
 
     verify_structure()
@@ -94,8 +102,8 @@ def pdf_pipeline_init(args):
     path=directory_output(args.output)
 
     end=args.end if args.end else args.begin
-    print(f"filename={pdf.absolute()}, beginpage={args.begin}, endpage={end}, yaml_file={yaml}, dir={path}")
-    print(type(pdf.name))
+    #print(f"filename={pdf.absolute()}, beginpage={args.begin}, endpage={end}, yaml_file={yaml}, dir={path}")
+    #print(type(pdf.name))
     parser(filename=pdf.absolute(), beginpage=args.begin, endpage=end, yaml_file=yaml, dir=path)
 
 
@@ -119,15 +127,31 @@ def event_pipeline(args):
 
             from src.event_scrapper.export import download_pdf
             download_pdf(d,output)
+        case "fullpipeline":
+            from src.pipeline_web_pdf.pipeline import Event_pdf_pipeline
+            pipeline=Event_pdf_pipeline(url=args.page_event_url)
+            pipeline.build_web_pipeline()
+
+            pipeline.run()
 
 
+def pdf_pipeline(args):
+    verify_structure()
+    match args.action:
+        case "manual":
+            pdf_manual_pipeline_init(args)
+        case "auto":
+            from src.pipeline_web_pdf.pipeline import Event_pdf_pipeline
+            pipeline=Event_pdf_pipeline(relative_dir=Path(args.event_folder).resolve())
+            pipeline.build_from_folder()
+            pipeline.run()
 
 
 def pipeline(args):
     verify_structure()
     match args.module:
         case "pdf":
-            pdf_pipeline_init(args)
+            pdf_pipeline(args)
         case "event":
             event_pipeline(args)
 
