@@ -253,6 +253,8 @@ class TableData:
         self.change_column("technical_score",".","")
         self.change_column("technical_score"," ","_")
 
+        self.handle_info_columns()
+
         self.bv_bonus_handle()
         self.general_deduction(config=config)
 
