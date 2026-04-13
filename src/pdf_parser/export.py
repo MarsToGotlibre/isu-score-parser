@@ -77,6 +77,7 @@ class FilenameFactory:
         SPECIAL = {
         "world synchronized skating championships": "wsysc",
         "world junior synchronized skating championships": "wjsysc",
+        "synchronized skating junior world championships":"wjsysc",
         "world championships": "wc",
         "world junior championships": "wjc",
         }
@@ -134,7 +135,7 @@ class FilenameFactory:
 
         date=jsondict["competition"].get("date")
         if date:
-            gen.date=date[:4]
+            gen.year=date[:4]
         gen.compet=self.comp_name_red(jsondict["competition"].get("name"))
         gen.segment=self.find_segment(jsondict["competition"]["segment"])
         return gen
@@ -143,7 +144,7 @@ class FilenameFactory:
         gen=FilenameGenerator()
         gen.cat,gen.discipline=(self.find_discipline_cat(raw_cat=compinfo.category))
         gen.div=compinfo.division
-        gen.date=compinfo.date.year if compinfo.date else None
+        gen.year=str(compinfo.date.year) if compinfo.date else None
         gen.compet=self.comp_name_red(compinfo.name)
         gen.segment=self.find_segment(compinfo.segment)
         return gen

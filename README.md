@@ -10,6 +10,11 @@ While it is optimized for **Synchronized Skating**, it supports most artistic di
 
 To see examples of outputs you can check the test-outputs folder in the test branch.
 
+To install all the dependencies : 
+```sh
+pip install requests lxml pandas beautifulsoup4 regex "camelot-py[base]" pdfplumber pyyaml
+```
+
 ##  Event Data Scraper
 Extracts locations, results, and panel data from ISU event pages.
 
@@ -47,6 +52,14 @@ python3 main.py event dl <FILE.json> [OPTIONS]
 | Option | Description |
 |--|--|
 |  `-o, --output-dir` | Output directory name. If it doesnt exists it will be created. Defaults to the same directory as the JSON file.|
+
+**3. Scrape, download the PDFs and extract their scores**
+> [!WARNING]
+> requires the dependecies of the next section.
+
+```sh
+python3 main.py event fullpipeline <url>
+```
 
 **Examples**
 ```sh
@@ -91,6 +104,8 @@ pip install pandas "camelot-py[base]" pdfplumber pyyaml
 
 ### Usage
 
+**1. Manually**
+
 Use the following options to parse your pdf:
 
  | Options | Required | Descriptions |
@@ -104,7 +119,7 @@ Use the following options to parse your pdf:
 Usage :
 
 ```sh
-python3 main.py [OPTIONS]
+python3 main.py pdf manual [OPTIONS]
 ```
 
 #### Add info to the jsons generated
@@ -125,7 +140,16 @@ source_url: example.org
 
 None of the entries (except `shema_version`) or required when parsing. You can remove some of them if data is missing.
 
-## Futur Objectvies
+**2. Automatic extraction**
 
-- Possibility to parse multiple pdfs at a time.
-- Connect the 2 modules
+Is meant to be a continuation if you have downloaded the event JSON and downloaded the PDFs, but can also work with only pdfs you have downloaded, The only difference is you won't have the name of the event in the folder.
+
+The folders containing all the extracted JSONs scores will be stored in the folder with the PDFs you want to extract.
+
+```sh
+python3 main.py pdf auto Folder
+```
+
+## Futur Objectives
+
+- visualise the parsed pdf next to the data extracted (verification)
