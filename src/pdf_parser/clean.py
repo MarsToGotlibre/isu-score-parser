@@ -53,9 +53,8 @@ class TableData:
             if config.camelot_args[key]==1:
                 continue
             else:
-                head=self.tables[key].iloc[0]
-                for i in range(1,config.header_row[key]):
-                    head+=" "+self.tables[key].iloc[i]
+                new_header = self.tables[key].iloc[0:config.header_row[key]].astype(str).agg(' '.join)
+                self.tables[key].iloc[0] = new_header
                 self.tables[key].drop([i for i in range(1,config.header_row[key])],inplace=True)
                 self.tables[key].reset_index(drop=True,inplace=True)
         return self
@@ -224,6 +223,29 @@ class TableData:
             new_info=new_info.add(df.iloc[:,info_idx+1],fill_value="")
         df["Info"]=new_info.apply(lambda x:self.info_list(x) if pd.notna(x) else x)
         return self
+    
+    def fix_misaligned_order_row(self):
+        for idx in range(len(self.tables["technical_score"])):
+            order_cell = str(self.tables["technical_score"].iloc[idx, 0]).strip()
+            element_cell = str(self.tables["technical_score"].iloc[idx, 1]).strip()
+            
+            # We search if the celll begins with number + space + text
+            # Exemple: "5 ME2"
+            import re
+            match = re.match(r'^(\d+)\s+(.+)$', order_cell)
+            if not match:
+                match=re.match(r'^(\d+)\s+(.+)$', element_cell)
+        
+            
+            if match:
+                order_val = match.group(1)      # The number (ex: 5)
+                element_val = match.group(2)    # The element (ex: ME2)
+                
+                self.tables["technical_score"].iloc[idx, 0] = order_val
+                
+                self.tables["technical_score"].iloc[idx, 1] = element_val
+                
+        return self
 
     def clean(self,config:TableConfig):
         self.merge_rows(config)
@@ -255,6 +277,7 @@ class TableData:
 
         self.handle_info_columns()
 
+        self.fix_misaligned_order_row()
         self.bv_bonus_handle()
         self.general_deduction(config=config)
 

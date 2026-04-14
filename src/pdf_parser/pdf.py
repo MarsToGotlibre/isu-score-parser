@@ -105,7 +105,7 @@ class PageMask:
         fst_tbl_passed=False
         NO_JUDGES=re.compile(r"The Judges Panel") 
         #Support for artistic competitions in mid 2010
-        INFOS=re.compile(r"[<x=e\*q!]{1,2}\s?(?:[-\w\s]+\s?)")
+        INFOS=re.compile(r"[<x=e\*q!F]{1,2}\s?(?:[-\w\s]+\s?)")
 
         #Deduction in 2005 where group into a table
         DEDUCTIONS_05=re.compile(r"([A-Za-z\s&-]+):(?:\s+)?([0-9]{1,2}\.[0-9]{2})")

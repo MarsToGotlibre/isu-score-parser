@@ -136,15 +136,14 @@ def closest_archive(url):
     
     response=available.json()
     closest=response['archived_snapshots'].get('closest')
-    if not closest:
-        return None
-    if closest["status"]!="200":
+    
+    if not closest or closest["status"]!="200":
         fallback=list_archive(url)
         if fallback:
             return fallback[0]
         return 
     else:
         wayback_url=closest["url"]
-        if wayback_url.startwith("http://"):
+        if wayback_url.startswith("http://"):
             wayback_url=wayback_url.replace("http://","https://")
         return wayback_url

@@ -113,8 +113,8 @@ def parser(filename,dir,beginpage:int=1,endpage:int|None=None, yaml_file=None,ad
 
     if yaml_file:
         addinfo=yamlHandle.from_file(yaml_file)
-    
-    print("addinfo",addinfo)
+
+    addinfo.log()
     
     scoredoc=ScoreDocument.fromFile(filename=filename,page=beginpage)
     compinfo=CompetitionInfo.from_scoredoc(scoredoc)

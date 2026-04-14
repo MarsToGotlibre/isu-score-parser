@@ -79,7 +79,7 @@ class Event_pdf_pipeline:
     def build_web_pipeline(self):
         from src.event_scrapper.export import init_finc
 
-        self.output_dir,self.history=init_finc(self.url,dl_pdf=True,output=self.relative_dir)
+        self.relative_dir,self.history=init_finc(self.url,dl_pdf=True,output=self.relative_dir)
         
         self.get_pdfs_from_dir()
 

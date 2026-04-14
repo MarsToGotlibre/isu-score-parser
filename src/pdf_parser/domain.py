@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 import datetime
 from dataclasses import field
+import logging
+logger = logging.getLogger(__name__)
+
 @dataclass
 class Team:
     name:str
@@ -153,6 +156,16 @@ class AdditionalInfo:
             season=data.get("season"),
             source_url=data.get("source_url")
         )
+    def log(self):
+        string="\n"
+        string+=f"competition  : {self.name}\n" if self.name else ""
+        string+=f"country : {self.country}\n" if self.country else ""
+        string+=f"city : {self.city}\n" if self.city else ""
+        string+=f"date : {self.date.isoformat()}\n" if self.date else ""
+        string+=f"season : {self.season}\n" if self.season else ""
+        string+=f"source url : {self.source_url}\n" if self.source_url else ""
+        logger.info(string)
+        
 
 from src.pdf_parser.clean import ScoreDocument
 @dataclass 
