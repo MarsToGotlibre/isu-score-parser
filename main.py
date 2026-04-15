@@ -31,6 +31,11 @@ def build_parser():
     pdf_auto=pdf_subparser.add_parser("auto",help="Auto detects the PDFs in a folder in and extract them")
     pdf_auto.add_argument("event_folder")
 
+    pdf_verify=pdf_subparser.add_parser("verify",help="Generates a page to view the pdf next to its extracted data")
+    pdf_verify.add_argument('-p', '--pdf',type=str, help="PDF File path",required=True)
+    pdf_verify.add_argument("-d","--data",type=str,help="Extracted data directory", required=True)
+    pdf_verify.add_argument("--port",type=int,help="Port of the server",default=5000)
+
     event_parser= subparser.add_parser("event", help="Extract the event data from event page")
     event_subparser=event_parser.add_subparsers(dest="action",required=True)
 
@@ -145,6 +150,15 @@ def pdf_pipeline(args):
             pipeline=Event_pdf_pipeline(relative_dir=Path(args.event_folder).resolve())
             pipeline.build_from_folder()
             pipeline.run()
+        case "verify":
+            pdf_file=Path(args.pdf).resolve()
+            folder=Path(args.data).resolve()
+            check_file_exists(pdf_file)
+            check_extention(pdf_file,".pdf")
+
+            from src.web_viz.app import run_server
+
+            run_server(event_dir=folder,pdf_path=pdf_file,port=args.port)
 
 
 def pipeline(args):

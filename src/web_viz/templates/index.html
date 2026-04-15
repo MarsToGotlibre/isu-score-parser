@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ISU Visualizer - {{ tables[0][0].meta.sourcefile }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: #525659;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Le conteneur principal */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Une ligne = Une page entière */
+        .page-row {
+            display: flex;
+            width: 100vw;
+            /* height: 100vh; */
+            /* Chaque ligne prend tout l'écran */
+            border-bottom: 5px solid #000;
+            background: #fff;
+        }
+
+        .pdf-side {
+            flex: 1;
+            border-right: 2px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: hidden;
+            /* La page de PDF sera scrollée par le parent */
+            background: #525659;
+        }
+
+        .data-side {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            /* Permet de scroller les tableaux si ils sont trop longs */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto !important;
+        }
+
+        .isu-table-container {
+            font-family: "Arial Narrow", Arial, sans-serif;
+            width: 100%;
+            max-width: 900px;
+            color: #000;
+            line-height: 1.2;
+        }
+
+        .isu-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5px;
+        }
+
+        .border-table{
+            border: 1px solid #000;
+        }
+
+        .upper-borders{
+            border-left: 1px solid #000;
+            border-top: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+
+        .bottoms-border{
+            border-left: 1px solid #000;
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+
+        .middle-table-borders{
+            border-left: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+
+        .isu-table th,
+        .isu-table td {
+            /* border: 1px solid #ccc; */
+            padding: 2px 4px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        /* En-tête principal */
+        .main-header {
+            border-bottom: 1px solid #000;
+            background: #fff;
+        }
+
+        .main-header th {
+            border: none;
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        /* Lignes de section */
+        .section-header {
+            background-color: #eee;
+            font-weight: bold;
+            text-align: left !important;
+        }
+
+        .row-bold {
+            font-weight: bold;
+        }
+
+        .align-left {
+            text-align: left !important;
+        }
+
+        .align-right{
+            text-align: right !important;
+        }
+
+        .double-bottom {
+            border-bottom: 3px double #000 !important;
+        }
+
+        .total-row {
+            border-top: 2px solid #000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+
+
+    <div id="main-container">
+
+        {% for page_tables in tables %}
+        <div class="page-row" id="row-page-{{loop.index}}">
+
+            <div class="pdf-side" id="pdf-container-{{ loop.index }}">
+            </div>
+
+            <div class="data-side">
+                {% for table in page_tables %}
+
+                    <div class="isu-table-container">
+                        <table class="isu-table main-header border-table">
+                            <tr>
+                                <th>Rank</th>
+                                <th class="align-left">Name</th>
+                                <th>Nation</th>
+                                <th>Starting Number</th>
+                                <th>Total Segment Score</th>
+                                <th>Total Element Score</th>
+                                <th>Total Program Component Score (factored)</th>
+                                <th>Total Deductions</th>
+                            </tr>
+                            <tr class="row-bold">
+                                <td>{{table.results.rank}}</td>
+                                <td class="align-left">{{table.results.team.name}}</td>
+                                <td>{{table.results.team.country}}</td>
+                                <td>{{table.results.team.starting_number}}</td>
+                                <td>{{"%.2f"|format(table.results.scores.total)}}</td>
+                                <td>{{"%.2f"|format(table.results.scores.technical.total)}}</td>
+                                <td>{{"%.2f"|format(table.results.scores.components)}}</td>
+                                <td>{{"%.2f"|format(table.results.scores.deductions)}}</td>
+                            </tr>
+                        </table>
+
+                        <table class="isu-table">
+                            <thead class="upper-borders">
+                                <tr class="section-header">
+                                    <th>#</th>
+                                    <th class="col-element align-left"> Executed Elements</th>
+                                    <th>Info</th>
+                                    <th class="col-base" style="width:50px;">Base Value</th>
+                                    {% if table.layout.has_bonus %} <th></th> {% endif %}
+                                    <th style="width:30px;">GOE</th>
+                                    {% if table.layout.has_deduction %} <th>Ded.</th> {% endif %}
+                                    {% for j_key in table.layout.judges_list %}
+                                    <th>{{ j_key }}</th>
+                                    {% endfor %}
+                                    <th style="width:30px;">Ref.</th>
+                                    <th style="width:80px;">Scores of Panel</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for el in table.results.technical_elements %}
+                                <tr class="middle-table-borders">
+                                    <td class="col-num">{{el.order}}</td>
+                                    <td class="align-left">{{el.element_raw}}</td>
+                                    <td>{{el.info | join(',') if el.info else ""}}</td>
+                                    <td>{{"%.2f"|format(el.base_value)}}</td>
+                                    {% if table.layout.has_bonus %} <td>{{"x" if el.bonus else ""}}</td> {% endif %}
+                                    <td class="align-right">{{"%.2f"|format(el.goe)}}</td>
+                                    {% if table.layout.has_deduction %} <td>{{ "%.2f"|format(el.elm_ded) if el.elm_ded else ""}}</td> {% endif %}
+                                    {% for j_key in table.layout.judges_list %}
+                                    <td >
+                                        {% set val = el.judges.get(j_key) %}                                        
+                                        {{ val|int if val is not none else "-" }}
+                                    </td>
+                                    {% endfor %}
+                                    <td>{{ el.ref if el.ref else ""}}</td>
+                                    <td>{{"%.2f"|format(el.panel_score)}}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="row-bold middle-table-borders">
+                                    <td colspan="3"></td>
+                                    <td>{{"%.2f"|format(table.results.scores.technical.base_value)}}</td>
+                                    <td colspan="{{table.layout.total_columns- 5}}"></td>
+                                    <td>{{"%.2f"|format(table.results.scores.technical.total)}}</td>
+                                </tr>
+
+                                <tr class="section-header middle-table-borders">
+                                    <th></th>
+                                    <th colspan="2" class="align-left">Program Components</th>
+                                    <th>Factor</th>
+                                    {% if table.layout.has_bonus %} <th></th> {% endif %}
+                                    <th></th> <!-- goe -->
+                                    {% if table.layout.has_deduction %} <th></th> {% endif %}
+                                    {% for j_key in table.layout.judges_list %}
+                                    <th>{{ j_key }}</th>
+                                    {% endfor %}
+                                    <th colspan="2"></th>
+                                </tr>
+                                {% for comp in table.results.components %}
+
+                                <tr class="middle-table-borders">
+                                    <td></td>
+                                    <td colspan="2" class="align-left">{{comp.name}}</td>
+                                    <td>{{"%.2f"|format(comp.factor)}}</td>
+                                    {% if table.layout.has_bonus %} <td></td> {% endif %}
+                                    <td></td>
+                                    {% if table.layout.has_deduction %} <td></td> {% endif %}
+                                    {% for j_key in table.layout.judges_list %}
+                                        <td>{{"%.2f"|format( comp.judges[j_key] )}}</td>
+                                    {% endfor %}
+                                    <td></td>
+                                    <td>{{"%.2f"|format(comp.panel_score)}}</td>
+                                </tr>
+                                {% endfor %}
+
+                                <tr class="row-bold middle-table-borders" style="border-bottom: 1px solid #000;">
+                                    <td colspan="{{table.layout.total_columns - 1}}" class="align-left">Judges Total Program
+                                        Component Score (factored)</td>
+                                    <td>{{"%.2f"|format(table.results.scores.components)}}</td>
+                                </tr>
+                                
+                                <tr style="height: 5px; border: none !important;">
+                                    <td colspan="{{ table.layout.total_columns}}" style="border: none !important;">
+
+                                    </td>
+
+                                </tr>
+
+                                <tr class="{{'upper-borders' if table.meta.deduction_vote else 'border-table' }}" >
+                                    <td colspan="{{ table.layout.total_columns - 1 }}" class="align-left">
+                                        <strong>Deductions</strong>: &nbsp;&nbsp;&nbsp;
+                                        {% if table.results.deductions %}
+                                        {% for ded in table.results.deductions %}
+                                        {{ ded.type }} &nbsp;&nbsp; {{ "%.2f"|format(ded.deduction) }} {{ "(" ~ ded.amount ~ ")" if ded.amount else ""
+                                        }}{{ "&nbsp;&nbsp;&nbsp;"|safe if not loop.last else "" }} {% endfor %}
+                                        {% else %}
+
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="row-bold">
+                                        {{ table.results.scores.deductions if table.results.scores.deductions > 0 else "0.00" }}
+                                    </td>
+                                </tr>
+                                {%if table.meta.deduction_vote%}
+                                    <tr class="bottoms-border">
+                                        
+                                        <td colspan="{{table.layout.total_columns}}" class="align-left">
+                                            {%for ded in table.meta.deduction_vote%}
+                                                {{ded.type}} &nbsp;&nbsp;&nbsp;
+                                                ({{ded.tally.in_favor}} of {{ded.tally.total}})
+
+                                                {{ "&nbsp;&nbsp;&nbsp;"|safe if not loop.last else "" }}
+
+                                            {%endfor%}
+                                        </td>
+                                        
+                                    </tr>
+                                {%endif%}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        const url = "{{ pdf_url }}";
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+
+        async function renderPages() {
+            const loadingTask = pdfjsLib.getDocument(url);
+            const pdf = await loadingTask.promise;
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const container = document.getElementById(`pdf-container-${i}`);
+                
+                if (!container) continue;
+
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvas = document.createElement('canvas');
+                container.appendChild(canvas);
+                
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+            }
+        }
+
+        renderPages();
+    </script>
+</body>
+
+</html>
