@@ -51,11 +51,11 @@ python3 main.py event dl <FILE.json> [OPTIONS]
 ```
 | Option | Description |
 |--|--|
-|  `-o, --output-dir` | Output directory name. If it doesnt exists it will be created. Defaults to the same directory as the JSON file.|
+|  `-o, --output-dir` | Output directory name. If it doesn't exist it will be created. Defaults to the same directory as the JSON file.|
 
 **3. Scrape, download the PDFs and extract their scores**
 > [!WARNING]
-> requires the dependecies of the next section.
+> requires the dependencies of the next section.
 
 ```sh
 python3 main.py event fullpipeline <url>
@@ -79,11 +79,15 @@ The parser also support other artistic disciplines.
 
 **Features**:
 
-- Retrocompatible (Up to 2005)
-- Multiple discipline support
-  - base value bonus support
-- Deduction votes support
-- No call support
+- **Retrocompatible** : supports ISU score PDFs imported up to 2005
+- **Multi-Discipline Architecture**: Engineered to handle various skating disciplines.
+  - *Advanced Scoring Support*: Automatic detection of base value bonuses.
+- **Granular Data Extraction**:
+
+   - *Deduction analysis* : Captures deduction votes and panel breakdowns.
+
+   - *No-Call Handling*: Properly identifies and processes "No-Call" elements.
+- **Built-in Visualizer**: Includes a side-by-side web interface for instant verification of extracted data against the source PDF.
 
 
 ### Installation
@@ -97,9 +101,10 @@ Requires :
   - camelot-py (1.0.9)
   - pdfplumber (0.11.9)
   - PyYaml (6.0.3) (*optional : download if you intend using YAML file to complete your output*)
+  - Flask (*to verify your output with your pdf* )
 
 ```sh
-pip install pandas "camelot-py[base]" pdfplumber pyyaml
+pip install pandas "camelot-py[base]" pdfplumber pyyaml flask
 ```
 
 ### Usage
@@ -124,7 +129,7 @@ python3 main.py pdf manual [OPTIONS]
 
 #### Add info to the jsons generated
 
-With the a YAML file following this patern:
+With the a YAML file following this pattern:
 
 ```yaml
 schema_version: 1
@@ -150,6 +155,24 @@ The folders containing all the extracted JSONs scores will be stored in the fold
 python3 main.py pdf auto Folder
 ```
 
-## Futur Objectives
+**3. Visually verify your extracted data with the pdf**
 
-- visualise the parsed pdf next to the data extracted (verification)
+Compare extracted data against the original PDF using a side-by-side web interface.
+ | Options | Required | Descriptions |
+ | --- | --- | --- |
+ | `-p`, `--pdf` | Yes | Path to the source PDF file |
+ | `-d`,`--data` | Yes  | Path to the folder containing the extracted JSON scores |
+ | `--port` | No | Port for the local server (Defaults to 5000) |
+
+```sh
+python3 main.py pdf verify --pdf <path_to_pdf> --data <path_to_json_folderr> 
+``` 
+*Once started, open your browser at http://127.0.0.1:5000. Press Ctrl+C in the terminal to stop the server.*
+
+#### Preview of the server
+*On the left* : the PDF  
+*On the right* : the extracted data.
+
+![Visualizer Demo](assets/vizualizer_preview.png)
+
+## Futur Objectives
