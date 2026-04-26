@@ -30,7 +30,7 @@ def download_pdf(event_dict:dict,output_dir):
             if not pdf_url:
                 continue
 
-            with requests.get(pdf_url,stream=True) as r:
+            with requests.get(pdf_url,stream=True,headers={"User-Agent": "Chrome/92.0.4515.159 Safari/537.36"} ) as r:
                 r.raise_for_status()
 
                 filename= generator.event_segment_pdf
