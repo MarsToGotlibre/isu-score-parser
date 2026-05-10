@@ -186,15 +186,15 @@
                                     <th>#</th>
                                     <th class="col-element align-left"> Executed Elements</th>
                                     <th>Info</th>
-                                    <th class="col-base" style="width:50px;">Base Value</th>
+                                    <th class="col-base" style="width:40px;">Base Value</th>
                                     {% if table.layout.has_bonus %} <th></th> {% endif %}
                                     <th style="width:30px;">GOE</th>
                                     {% if table.layout.has_deduction %} <th>Ded.</th> {% endif %}
                                     {% for j_key in table.layout.judges_list %}
                                     <th>{{ j_key }}</th>
                                     {% endfor %}
-                                    <th style="width:30px;">Ref.</th>
-                                    <th style="width:80px;">Scores of Panel</th>
+                                    <th >Ref.</th>
+                                    <th style="width:55px;">Scores of Panel</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -279,7 +279,7 @@
                                     </td>
 
                                     <td class="row-bold">
-                                        {{ table.results.scores.deductions if table.results.scores.deductions > 0 else "0.00" }}
+                                        {{ table.results.scores.deductions if table.results.scores.deductions < 0 else "0.00" }}
                                     </td>
                                 </tr>
                                 {%if table.meta.deduction_vote%}

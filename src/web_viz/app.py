@@ -19,7 +19,7 @@ def index():
                 # verification via metadata
                 
         except Exception as e:
-            print(f"Erreur lecture {filename}: {e}")
+            print(f"Error reading {filename}: {e}")
         if data.get("meta", {}).get("sourcefile") == target_pdf:
             p_num = data.get('meta', {}).get('page', 1)
             if p_num not in pages_dict:
@@ -52,7 +52,7 @@ def prepare_table_layout(table):
     
     # 2. Verification of optional columns
     has_bonus = any(el.get('bonus') for el in table['results']['technical_elements'])
-    has_deduction = any(el.get('element_deduction') for el in table['results']['technical_elements'])
+    has_deduction = any(el.get('elm_ded') for el in table['results']['technical_elements'])
     
     # 3. Total Colsplan
     # Base (5) : #, Element, Info, Base, GOE

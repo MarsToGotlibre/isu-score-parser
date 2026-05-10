@@ -112,12 +112,14 @@ def wayback_urlsplit(url: str) -> ExtendedUrl:
 def list_archive(url):
     import pandas as pd
     response= requests.get(
-        "http://web.archive.org/cdx/search/cdx",
-        params={"url":url,
-                "output":"json",
-                "filter":"statuscode:200",
-                "limit":4,
-                "fl ":"timestamp,original,length",})
+        f"http://web.archive.org/cdx/search/cdx?url={url}&output=json&filter=statuscode:200&limit=4&fl=timestamp,original,length")
+#         params={"url":url,
+#                "output":"json",
+#                "filter":"statuscode:200",
+#                "limit":4,
+#                "fl ":"timestamp,original,length",},
+#                )
+    response.raise_for_status()
     if len(response.json())<2:
         return
     df=pd.DataFrame(response.json()[1:],columns=response.json()[0])

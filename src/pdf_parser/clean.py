@@ -6,6 +6,10 @@ from src.pdf_parser.pdf import PageMask,TableExtractor
 
 logger = logging.getLogger(__name__)
 
+def is_number_repl_isdigit(s):
+    """ Returns True if string is a number. """
+    return s.replace('.','',1).isdigit()
+
 class TableData:
     def __init__(self, tables: dict[str, pd.DataFrame]):
         self.tables = tables
@@ -73,6 +77,7 @@ class TableData:
     
     def fill_juges(self,key):
         judge_cols_list=self.judge_cols(key)
+        judge_cols_list = [i for i in range(judge_cols_list[0],judge_cols_list[-1]+1)]
         if len(judge_cols_list)>0:
             self.tables[key].iloc[0,judge_cols_list]=[f"J{i}" for i in range(1,len(judge_cols_list)+1)]
         return self
@@ -215,6 +220,8 @@ class TableData:
     
     def handle_info_columns(self):
         df= self.tables["technical_score"]
+        if df.get("Info") is not None:
+            return self
         info_idx=df.columns.get_loc("Info")
         if not pd.isna(df.columns[info_idx+1]) :
             new_info=df["Info"]
@@ -232,9 +239,9 @@ class TableData:
             # We search if the celll begins with number + space + text
             # Exemple: "5 ME2"
             import re
-            match = re.match(r'^(\d+)\s+(.+)$', order_cell)
+            match = re.match(r'^(\d+)\s*((?:[A-Za-z]+).+)$', order_cell)
             if not match:
-                match=re.match(r'^(\d+)\s+(.+)$', element_cell)
+                match=re.match(r'^(\d+)\s*((?:[A-Za-z]+).+)$', element_cell)
         
             
             if match:
@@ -244,8 +251,29 @@ class TableData:
                 self.tables["technical_score"].iloc[idx, 0] = order_val
                 
                 self.tables["technical_score"].iloc[idx, 1] = element_val
-                
+            
+            match = re.match(r'^([A-Za-z\d\\\+]+)\s+(.+)$',str(self.tables["technical_score"].iloc[idx, 1]))
+            next_cell = str(self.tables["technical_score"].iloc[idx, 2]).strip()
+            if not match:
+                #print(idx)
+                match=re.match(r'^([A-Za-z\d\\\+]+)\s+(.+)$', next_cell)
+            
+            if match:
+                #print("match")
+                #print(match.groups(1),match.group(2))
+                element_val = match.group(1)
+                next_val = match.group(2)
+                import numpy as np
+                self.tables["technical_score"].iloc[idx, 2] = np.nan
+                self.tables["technical_score"].iloc[idx, 1] = element_val  
+                if is_number_repl_isdigit(next_val):
+                    if pd.isna(self.tables["technical_score"].loc[idx,"Base_Value"]) and float(next_val)>0:
+                        self.tables["technical_score"].loc[idx,"Base_Value"]=next_val
+                else :
+                    self.tables["technical_score"].iloc[idx, 2] = next_val
+
         return self
+
 
     def clean(self,config:TableConfig):
         self.merge_rows(config)
@@ -266,11 +294,11 @@ class TableData:
         self.set_headers("general_info")
         self.set_headers("technical_score")
 
+        self.handle_different_col_name()
 
         self.tables["technical_resume"] = self.separate_last_line("technical_score")
         self.tables["PCS_resume"] = self.total_pcs("PCS")
-
-        self.handle_different_col_name()
+        
         self.change_column("PCS"," ","_")
         self.change_column("technical_score",".","")
         self.change_column("technical_score"," ","_")
@@ -323,8 +351,9 @@ class ScoreDocument:
         if not config_custom:
             try:
                 return table.clean(self.config)
-            except:
-                logger.warning("Clean: Unable to clean the data with default config")
+            except Exception as e:
+                logger.warning(f"Clean: Unable to clean the data with default config : {e}")
+                print(table.tables)
                 return table
         else:
             try:
