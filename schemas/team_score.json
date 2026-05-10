@@ -1,0 +1,337 @@
+{
+    "title": "Team/skater Detailed score",  
+    "description": "The detailed scores from a team/skater",  
+    "type": "object",
+    "properties":{
+        "meta":{
+            "description" : "Information about the extraction of this table of score",
+            "type":"object",
+            "properties":{
+                "sourcefile" : {
+                    "description" :"Name of the pdf being extracted",
+                    "type" : "string"
+                },
+                "source_url":{
+                    "description" : "The url where the file was found",
+                    "type" : "string"
+                },
+                "page":{
+                    "description" : "Page the scores where found",
+                    "type" : "integer"
+                },
+                "date_parsing":{
+                    "description" : "Date the scores were extracted",
+                    "type" : "string"
+                },
+                "nbr_tables_per_page" :{
+                    "description" : "How many team/skater detailed scores tables per pages",
+                    "type" : "integer"
+                },
+                "parser_version" : {
+                    "description" : "Version of the extractor",
+                    "type" : "string"
+                },
+                "schema_version" : {
+                    "description" : "Version of the JSON shema",
+                    "type" : "string"
+                },
+                "layout_strategy" : {
+                    "description" : "Was the layout regenerated for this page or not",
+                    "type" : "string",
+                    "enum" : ["local","global"]
+                },
+                "deduction_vote" : {
+                    "description" : "If a vote has accured to apply a deduction and has not conclueded in a deduction",
+                    "type" :"array",
+                    "items" : {
+                        "type" : "object",
+                        "properties" : {
+                            "type" : {
+                                "description" : "Deduction concerned by the vote",
+                                "type":"string"
+                            },
+                            "tally":{
+                                "type" : "object", 
+                                "properties" :{
+                                    "in_favor" : {
+                                        "description" : "Votes in favor",
+                                        "type" : "integer",
+                                        "minimum" : 0
+                                    },
+                                    "total" : {
+                                        "description" : "Total of votes",
+                                        "type" : "integer",
+                                        "minimum": 0
+                                    }
+                                },
+                                "required":["in_favor","total"]
+                            }
+                        },
+                        "required" : ["type","tally"]
+                    }
+                }
+
+            },
+            "required" : ["sourcefile","page","date_parsing","nbr_tables_per_page","parser_version","schema_version","layout_strategy"]
+        },
+        "competition":{
+            "description" : "Competition information",
+            "type" : "object",
+            "properties" :{
+                "category" : {
+                    "description" : "Category of the competition",
+                    "type" : "string"
+                },
+                "segment" : {
+                    "description" :"Segment skated",
+                    "type" : "string"
+                },
+                "division" : {
+                    "description" : "Division of the team/skater",
+                    "type" : "string"
+                },
+                "name" : {
+                    "description" :"Competition name",
+                    "type" : "string"
+                },
+                "location" : {
+                    "description" : "Location where the competition is being held",
+                    "type" : "object",
+                    "properties" :{
+                        "country" : {
+                            "description" : "Country where the competition is being held",
+                            "type" : "string",
+                            "pattern" : "^[A-Z]{3}$"
+                        },
+                        "city" : {
+                        "description" : "City where the competition is being held",
+                        "type" : "string"
+                        }
+                    }
+                },
+                "season" : {
+                    "description" : "season where the competition belongs",
+                    "type" : "string"
+                },
+                "date" : {
+                    "description" : "Date the competition was held",
+                    "type" : "string"
+                }    
+            },
+            "required":["category","segment"]
+        },
+        "results" : {
+            "description" : "Results extracted from the PDF",
+            "type" :"object",
+            "properties" : {
+                "team" : {
+                    "description" : "Team/skater information in this segment",
+                    "type":"object",
+                    "properties":{
+                        "name" : {
+                            "description" : "Name of the team/skater",
+                            "type" : "string"
+                        },
+                        "country" :{
+                            "description" : "Country represented by the skater",
+                            "type" : "string",
+                            "pattern" : "^[A-Z]{3}$"
+                        },
+                        "starting_number" :{
+                            "description" : "Order were the Team/skater skated",
+                            "type" : "integer",
+                            "minimum" : 1
+                        }
+                    },
+                    "required" : ["name","country"]
+                },
+                "rank" : {
+                    "description" :"Rank obtained by the team/skater",
+                    "type" : "integer",
+                    "minimum" : 1
+                },
+                "scores":{
+                    "description" : "Total scores resume",
+                    "type" :"object",
+                    "properties":{
+                        "total" : {
+                            "description" : "Total score of the segment",
+                            "type" : "number",
+                            "minimum":0
+                        },
+                        "technical":{
+                            "description" : "Technical scores",
+                            "type" : "object",
+                            "properties" : {
+                                "total" : {
+                                    "description" : "Total technical score",
+                                    "type" : "number",
+                                    "minimum" : 0
+                                },
+                                "base_value": {
+                                    "description" : "Total technical base value score",
+                                    "type" : "number",
+                                    "minimum" : 0
+                                }
+                            },
+                            "required":["total","base_value"]
+                        },
+                        "components" : {
+                            "description" : "Total component score (factored)",
+                            "type" : "number",
+                            "minimum" :0
+                        },
+                        "deductions" : {
+                            "description" : "Total deduction",
+                            "type" : "number",
+                            "maximum" : 0
+                        }
+                    },
+                    "required":["total","technical","components","deductions"]
+                },
+                "technical_elements" :{
+                    "description" : "List of technical elements called by the technical specialists",
+                    "type" : "array",
+                    "items" : {
+                        "type" : "object",
+                        "properties" :{
+                            "order":{
+                                "description" :"Place where the element was skated",
+                                "type":"integer",
+                                "minimum" :1
+                            },
+                            "element_raw" :{
+                                "description" : "String of the element called",
+                                "type" :"string"
+                            },
+                            "element_parts" :{
+                                "description" : "Element supparated by '+' sign",
+                                "type" : "array",
+                                "items" : {"type" : "string"}
+                            },
+                            "base_value" : {
+                                "description" : "Base value associated with the element called",
+                                "type" :"number",
+                                "minimum" :0
+                            },
+                            "goe":{
+                                "description" : "Grade of execution attributed for the element",
+                                "type" : "number"
+                            },
+                            "panel_score" : {
+                                "description" : "Score of the element after panel evaluation",
+                                "type" : "number",
+                                "minimum" :0
+                            },
+                            "judges" : {
+                                "description" : "Grade of executions attributed by each judge",
+                                "type" : "object",
+                                "properties" : {
+                                    "J1" : { "description" : "GOE attributed by judge number 1", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J2" : { "description" : "GOE attributed by judge number 2", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J3" : { "description" : "GOE attributed by judge number 3", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J4" : { "description" : "GOE attributed by judge number 4", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J5" : { "description" : "GOE attributed by judge number 5", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J6" : { "description" : "GOE attributed by judge number 6", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J7" : { "description" : "GOE attributed by judge number 7", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J8" : { "description" : "GOE attributed by judge number 8", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J9" : { "description" : "GOE attributed by judge number 9", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J10" : { "description" : "GOE attributed by judge number 10", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J11" : { "description" : "GOE attributed by judge number 11", "type" : "integer","minimum" : -5,"maximum" : 5 },
+                                    "J12" : { "description" : "GOE attributed by judge number 12", "type" : "integer","minimum" : -5,"maximum" : 5 }
+                                }
+                            },
+                            "info" : {
+                                "description" : "Informations about the execution of the element",
+                                "type" : "array",
+                                "items" : {
+                                    "type" : "string"
+                                }
+                            },
+                            "ref" : {
+                                "description" : "Referee mention"
+                            },
+                            "elm_ded" : {
+                                "description" : "Legacy column. Deduction applied to the element",
+                                "type" : "number"
+                            },
+                            "bonus" : {
+                                "description" : "A bonus has been applied ot the base value",
+                                "type" : "boolean"
+                            }
+                        },
+                        "required" :["order","element_raw","element_parts","base_value","goe","panel_score","judges"]
+                    }
+                },
+                "components" : {
+                    "description" : "Components evaluated by the panel",
+                    "type" : "array",
+                    "items" : {
+                        "type" : "object",
+                        "properties" :{
+                            "name" :{
+                                "description" : "Component evaluated",
+                                "type" : "string"
+                            },
+                            "factor" : {
+                                "description" : "Factor of multiplication of the component",
+                                "type" : "number",
+                                "minimum" : 0
+                            },
+                            "panel_score" : {
+                                "description" : "Score of component attributed by the panel",
+                                "type" : "number",
+                                "minimum" : 0,
+                                "maximum" : 10
+                            },
+                            "judges" : {
+                                "description" : "Component score attributed by each individual judges",
+                                "type" : "object",
+                                "properties" : {
+                                    "J1" : { "description" : "Component score attributed by judge number 1", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J2" : { "description" : "Component score attributed by judge number 2", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J3" : { "description" : "Component score attributed by judge number 3", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J4" : { "description" : "Component score attributed by judge number 4", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J5" : { "description" : "Component score attributed by judge number 5", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J6" : { "description" : "Component score attributed by judge number 6", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J7" : { "description" : "Component score attributed by judge number 7", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J8" : { "description" : "Component score attributed by judge number 8", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J9" : { "description" : "Component score attributed by judge number 9", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J10" : { "description" : "Component score attributed by judge number 10", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J11" : { "description" : "Component score attributed by judge number 11", "type" : "number","minimum" : 0,"maximum" : 10 },
+                                    "J12" : { "description" : "Component score attributed by judge number 12", "type" : "number","minimum" : 0,"maximum" : 10 }
+                                }
+                            }
+                        },
+                        "required":["name","factor","panel_score","judges"]
+                    }
+                },
+                "deductions" : {
+                    "description" : "Deductions applied to the team",
+                    "type" : "array",
+                    "items" : {
+                        "type" : "object",
+                        "properties" : {
+                            "type" : {
+                                "description" : "Type of deduction",
+                                "type" : "string"
+                            },
+                            "deduction":{
+                                "description" : "Amount of point deducted",
+                                "type" : "number",
+                                "maximum" : 0
+                            },
+                            "amount" : {
+                                "description" : "Amount of deduction counted",
+                                "type" : "integer",
+                                "minimum" : 1
+                            }
+
+                        },
+                        "required" :["type","deduction"]
+                    }
+                }
+            }
+        }
+    }
+}
