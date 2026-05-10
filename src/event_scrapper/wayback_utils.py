@@ -142,7 +142,7 @@ def list_archive(url):
         logger.warning(f"Failed to found url : {url} on wayback machine cdx api")
         response = None
     if not response:
-        return []
+        return 
     if len(response.json())<2:
         return
     df=pd.DataFrame(response.json()[1:],columns=response.json()[0])
@@ -153,22 +153,8 @@ def list_archive(url):
     return L
 
 
-#Firsts makes a request with a simple api
-# If  this archive is not available, it will make a second request with a different api 
-# to serach for other multiple urls if available and will chose the greatest one
 def closest_archive(url):
-    available=requests.get(f"https://archive.org/wayback/available?url={url}")
-    
-    response=available.json()
-    closest=response['archived_snapshots'].get('closest')
-    
-    if not closest or closest["status"]!="200":
-        fallback=list_archive(url)
-        if fallback:
-            return fallback[0]
-        return 
-    else:
-        wayback_url=closest["url"]
-        if wayback_url.startswith("http://"):
-            wayback_url=wayback_url.replace("http://","https://")
-        return wayback_url
+    cdx_archive = list_archive(url)
+    if cdx_archive:
+        return cdx_archive[0]
+    return None
