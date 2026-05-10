@@ -4,6 +4,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
+import logging
+
+logger = logging.getLogger(__name__)
 
 _RE_WAYBACK = re.compile(r'^/web/(\d{14})\w*/(https?://.+)$')
 
@@ -109,17 +114,35 @@ def wayback_urlsplit(url: str) -> ExtendedUrl:
         archived_url  = archived,
     )
 
+
+def get_cdx_session():
+    session = requests.Session()
+    
+    retry_strategy = Retry(
+        total=7,
+        backoff_factor=4,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET"]
+    )
+    
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    
+    return session
+
 def list_archive(url):
     import pandas as pd
-    response= requests.get(
-        f"http://web.archive.org/cdx/search/cdx?url={url}&output=json&filter=statuscode:200&limit=4&fl=timestamp,original,length")
-#         params={"url":url,
-#                "output":"json",
-#                "filter":"statuscode:200",
-#                "limit":4,
-#                "fl ":"timestamp,original,length",},
-#                )
-    response.raise_for_status()
+    url_request=f"http://web.archive.org/cdx/search/cdx?url={url}&output=json&filter=statuscode:200&limit=4&fl=timestamp,original,length"
+    session = get_cdx_session()
+    try :
+        response = session.get(url_request)
+        response.raise_for_status()
+    except Exception as e :
+        logger.warning(f"Failed to found url : {url} on wayback machine cdx api")
+        response = None
+    if not response:
+        return []
     if len(response.json())<2:
         return
     df=pd.DataFrame(response.json()[1:],columns=response.json()[0])

@@ -131,7 +131,7 @@ class Segment:
             **({"detailed_results":[
                 detailResults.to_dict() for detailResults in self.detailed_results
             ]} if self.detailed_results else {}),
-            "pdf_url":self.pdf_url
+            **({"pdf_url":self.pdf_url} if self.pdf_url else {})
         }
 
 @dataclass

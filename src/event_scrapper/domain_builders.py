@@ -26,6 +26,8 @@ class PanelBuilder:
                 return "Women"
             case "Mr":
                 return "Men"
+            case "Mrs":
+                return "Women"
         return
             
     @optional_build("panel")

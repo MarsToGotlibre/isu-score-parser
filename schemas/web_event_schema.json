@@ -316,7 +316,8 @@
                                     }
                                 },
                                 "pdf_url":{
-                                    "description":"url to the pdf with the detailed scores"
+                                    "description":"url to the pdf with the detailed scores",
+                                    "type":"string"
                                 }
                             }
                         }
